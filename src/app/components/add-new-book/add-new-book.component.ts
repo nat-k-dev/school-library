@@ -43,7 +43,7 @@ export class AddNewBookComponent {
       this.bookAuthor = '';
       this.disableBtn = false;
     }).catch((err: any) => {
-      const message = 'Error. Maybe book has been already added';
+      const message = 'Error. Maybe book with this ISBN has been already added';
       this.snackBarService.showMessage(message, 'Close');
       this.disableBtn = false; 
     });

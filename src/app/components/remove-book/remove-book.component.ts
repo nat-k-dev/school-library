@@ -47,10 +47,14 @@ export class RemoveBookComponent {
           this.snackBarService.showMessage(message, 'Close');
           this.bookISBN = '';
           this.disableBtn = false;
+        }).catch((err: any) => {
+          const message = 'Error. Something went wrong when deleting book';
+          this.snackBarService.showMessage(message, 'Close');
+          this.disableBtn = false; 
         });
       }
     }).catch((err: any) => {
-      const message = 'Error';
+      const message = 'Error. Something went wrong when searching for this book';
       this.snackBarService.showMessage(message, 'Close');
       this.disableBtn = false; 
     });

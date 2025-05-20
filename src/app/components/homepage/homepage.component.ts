@@ -28,4 +28,8 @@ export class HomepageComponent {
     this.router.navigateByUrl('borrow-book');
   }
 
+  BooksOverview() {
+    this.router.navigateByUrl('books-overview');
+  }
+
 }

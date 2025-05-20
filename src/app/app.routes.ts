@@ -4,6 +4,7 @@ import { AddNewBookComponent } from './components/add-new-book/add-new-book.comp
 import { BorrowBookComponent } from './components/borrow-book/borrow-book.component';
 import { ReturnBookComponent } from './components/return-book/return-book.component';
 import { RemoveBookComponent } from './components/remove-book/remove-book.component';
+import { BooksOverviewComponent } from './components/books-overview/books-overview.component';
 
 export const routes: Routes = [
     { path: '', component: HomepageComponent, title: 'Biebouders' },
@@ -11,4 +12,5 @@ export const routes: Routes = [
     { path: 'remove-book', component: RemoveBookComponent, title: 'Biebouders | Remove book' },
     { path: 'borrow-book', component: BorrowBookComponent, title: 'Biebouders | Borrow book' },
     { path: 'return-book', component: ReturnBookComponent, title: 'Biebouders | Return book' },
+    { path: 'books-overview', component: BooksOverviewComponent, title: 'Biebouders | Overview' },
 ];
