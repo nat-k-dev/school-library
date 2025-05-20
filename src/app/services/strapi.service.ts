@@ -30,8 +30,28 @@ export class StrapiService {
     return this.strapi.request('get', 'api/books/' + id);
   }
 
-  PutBook(id: number) {
-    return this.strapi.request('put', 'api/books/' + id);
+  BorrowBook(id: number, childName: string, childGroup: string, date: string) {
+    return this.strapi.request('put', 'api/books/' + id, {
+      data: {
+        data: {
+          child_name: childName,
+          child_group: childGroup,
+          date: date
+        }
+      }
+    });
+  }
+
+  ReturnBook(id: number, childName: string, childGroup: string) {
+    return this.strapi.request('put', 'api/books/' + id, {
+      data: {
+        data: {
+          child_name: childName,
+          child_group: childGroup,
+          date: null
+        }
+      }
+    });
   }
 
   DeleteBook(id: number) {

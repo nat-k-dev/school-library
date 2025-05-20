@@ -37,7 +37,7 @@ export class RemoveBookComponent {
       } else {
         const book = books[index];
         console.log(book);
-        this.strapi.DeleteBook(book.id).then((result: any) => {
+        this.strapi.DeleteBook(book.documentId).then((result: any) => {
           alert(book.name + ' is succesfully deleted!');
         });
       }

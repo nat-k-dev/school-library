@@ -1,3 +1,17 @@
 <div class="p-6 md:p-12">
     <app-go-back-button />
+    <div class="flex flex-col gap-4 md:items-start mt-10">
+        <h1 class="text-center text-2xl">Return book</h1>
+        <mat-form-field required class="input-field">
+            <mat-label>Book ISBN</mat-label>
+            <input matInput [(ngModel)]="bookISBN" name="bookISBN">
+        </mat-form-field>
+        <div class="w-full flex md:block">
+            <button mat-fab extended class="middle-button" (click)="ReturnBook()">
+                <mat-icon>how_to_vote</mat-icon>
+                Return book
+            </button>
+        </div>
+    </div>
 </div>
+

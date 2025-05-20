@@ -1,3 +1,25 @@
 <div class="p-6 md:p-12">
     <app-go-back-button />
+    <div class="flex flex-col gap-4 md:items-start mt-10">
+        <h1 class="text-center text-2xl">Borrow book</h1>
+        <mat-form-field required class="input-field">
+            <mat-label>Book ISBN</mat-label>
+            <input matInput [(ngModel)]="bookISBN" name="bookISBN">
+        </mat-form-field>
+        <mat-form-field required class="input-field">
+            <mat-label>Child name</mat-label>
+            <input matInput [(ngModel)]="childName" name="childName">
+        </mat-form-field>
+        <mat-form-field required class="input-field">
+            <mat-label>Child group</mat-label>
+            <input matInput [(ngModel)]="childGroup" name="childGroup">
+        </mat-form-field>
+        <div class="w-full flex md:block">
+            <button mat-fab extended class="middle-button" (click)="BorrowBook()">
+                <mat-icon>import_contacts</mat-icon>
+                Borrow book
+            </button>
+        </div>
+    </div>
 </div>
+
