@@ -1,5 +1,16 @@
 <main class="container-page">
   <div class="container-buttons">
+
+      <button mat-fab extended class="big-button" (click)="BorrowBook()">
+        <mat-icon>import_contacts</mat-icon>
+        Borrow book
+      </button>
+    
+      <button mat-fab extended class="big-button" (click)="ReturnBook()">
+        <mat-icon>how_to_vote</mat-icon>
+        Return book
+      </button>
+
       <button mat-fab extended class="big-button" (click)="AddNewBook()">
         <mat-icon>library_add</mat-icon>
         Add new book
@@ -10,14 +21,5 @@
         Remove book
       </button>
     
-      <button mat-fab extended class="big-button" (click)="BorrowBook()">
-        <mat-icon>import_contacts</mat-icon>
-        Borrow book
-      </button>
-    
-      <button mat-fab extended class="big-button" (click)="ReturnBook()">
-        <mat-icon>how_to_vote</mat-icon>
-        Return book
-      </button>
   </div>
 </main>

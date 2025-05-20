@@ -5,6 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
+import { StrapiService } from '../../services/strapi.service';
 
 @Component({
   selector: 'app-add-new-book',
@@ -25,8 +26,13 @@ export class AddNewBookComponent {
   public bookName = '';
   public bookAuthor = '';
 
-  AddNewBook() {
-    console.log(this.bookISBN, this.bookName, this.bookAuthor)
+  constructor(private strapi: StrapiService) {}
+
+  async AddNewBook() {
+    console.log(this.bookISBN, this.bookName, this.bookAuthor);
+    await this.strapi.PostBook(this.bookISBN, this.bookName, this.bookAuthor).then((result: any) => {
+      alert(this.bookName + ' is added!');
+    });
   }
 
 }

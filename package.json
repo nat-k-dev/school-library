@@ -24,6 +24,7 @@
     "@tailwindcss/vite": "^4.1.7",
     "postcss": "^8.5.3",
     "rxjs": "~7.8.0",
+    "strapi-sdk-javascript": "^0.3.3",
     "tailwindcss": "^4.1.7",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
