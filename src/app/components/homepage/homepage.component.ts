@@ -5,7 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-homepage',
-  imports: [ MatButtonModule, MatIconModule, RouterModule ],
+  imports: [ MatButtonModule, MatIconModule, RouterModule, MatButtonModule, MatIconModule ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css'
 })

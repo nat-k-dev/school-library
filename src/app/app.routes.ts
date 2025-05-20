@@ -6,9 +6,9 @@ import { ReturnBookComponent } from './components/return-book/return-book.compon
 import { RemoveBookComponent } from './components/remove-book/remove-book.component';
 
 export const routes: Routes = [
-    { path: '', component: HomepageComponent, title: 'Home page' },
-    { path: 'add-new-book', component: AddNewBookComponent, title: 'Add new book' },
-    { path: 'remove-book', component: RemoveBookComponent, title: 'Remove book' },
-    { path: 'borrow-book', component: BorrowBookComponent, title: 'Borrow book' },
-    { path: 'return-book', component: ReturnBookComponent, title: 'Return book' },
+    { path: '', component: HomepageComponent, title: 'Biebouders' },
+    { path: 'add-new-book', component: AddNewBookComponent, title: 'Biebouders | Add new book' },
+    { path: 'remove-book', component: RemoveBookComponent, title: 'Biebouders | Remove book' },
+    { path: 'borrow-book', component: BorrowBookComponent, title: 'Biebouders | Borrow book' },
+    { path: 'return-book', component: ReturnBookComponent, title: 'Biebouders | Return book' },
 ];
