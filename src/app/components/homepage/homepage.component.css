@@ -1,0 +1,14 @@
+@reference "../../../styles.css";
+
+.container-page {
+    @apply w-full h-full flex flex-col justify-center items-center;
+}
+
+.container-buttons {
+    @apply w-full flex flex-col lg:flex-row items-center justify-center gap-10;
+}
+
+.big-button {
+    @apply !w-2/3 sm:!w-1/2 lg:!w-[300px];
+    @apply !h-32 text-2xl;
+}
