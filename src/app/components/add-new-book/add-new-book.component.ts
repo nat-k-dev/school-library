@@ -6,6 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { StrapiService } from '../../services/strapi.service';
+import { SnackBarService } from '../../services/snack-bar.service';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-add-new-book',
@@ -16,7 +18,8 @@ import { StrapiService } from '../../services/strapi.service';
     MatInputModule, 
     MatButtonModule, 
     MatIcon, 
-    FormsModule 
+    FormsModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './add-new-book.component.html',
   styleUrl: './add-new-book.component.css'
@@ -25,13 +28,24 @@ export class AddNewBookComponent {
   public bookISBN = '';
   public bookName = '';
   public bookAuthor = '';
+  public disableBtn = false;
+  
 
-  constructor(private strapi: StrapiService) {}
+  constructor(private strapi: StrapiService, private snackBarService: SnackBarService) {}
 
   async AddNewBook() {
-    console.log(this.bookISBN, this.bookName, this.bookAuthor);
+    this.disableBtn = true;
     await this.strapi.PostBook(this.bookISBN, this.bookName, this.bookAuthor).then((result: any) => {
-      alert(this.bookName + ' is added!');
+      const message = '"' + this.bookName + '"' + ' is added!';
+      this.snackBarService.showMessage(message, 'Close');
+      this.bookISBN = '';
+      this.bookName = '';
+      this.bookAuthor = '';
+      this.disableBtn = false;
+    }).catch((err: any) => {
+      const message = 'Error. Maybe book has been already added';
+      this.snackBarService.showMessage(message, 'Close');
+      this.disableBtn = false; 
     });
   }
 

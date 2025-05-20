@@ -1,6 +1,6 @@
 <div class="p-6 md:p-12">
     <app-go-back-button />
-    <div class="flex flex-col gap-4 md:items-start mt-10">
+    <div class="flex flex-col gap-4 md:items-start mt-10 relative">
         <h1 class="text-center text-2xl">Add new book</h1>
         <mat-form-field required class="input-field">
             <mat-label>Book ISBN</mat-label>
@@ -15,11 +15,18 @@
             <input matInput [(ngModel)]="bookAuthor" name="bookAuthor">
         </mat-form-field>
         <div class="w-full flex md:block">
-            <button mat-fab extended class="middle-button" (click)="AddNewBook()">
+            <button mat-fab extended class="middle-button" (click)="AddNewBook()" [disabled]="disableBtn">
                 <mat-icon>library_add</mat-icon>
                 Add new book
             </button>
         </div>
+
+        @if (disableBtn) {
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <mat-spinner></mat-spinner>
+            </div>
+        }
+
     </div>
 </div>
 
