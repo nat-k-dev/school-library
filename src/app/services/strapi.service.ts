@@ -23,7 +23,7 @@ export class StrapiService {
   }
 
   GetBooks() {
-    return this.strapi.request('get', 'api/books');
+    return this.strapi.request('get', 'api/books?pagination[pageSize]=1000');
   }
 
   GetBook(id: number) {

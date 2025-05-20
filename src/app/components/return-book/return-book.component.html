@@ -2,6 +2,22 @@
     <app-go-back-button />
     <div class="flex flex-col gap-4 md:items-start mt-10 relative">
         <h1 class="text-center text-2xl">Return book</h1>
+
+        @if (!showCamera) {
+            <button mat-fab extended="" class="middle-button" (click)="scanWithCamera()">
+                <mat-icon>camera_alt</mat-icon>
+                Scan ISBN with camera
+            </button>
+        }
+        @if (showCamera) {
+            <div>
+                <video id="video" width="300" height="200" autoplay muted class="rounded-2xl mx-auto"></video>
+                @if (scannedResult) {
+                    <p class="mt-4"><strong>Scanned ISBN:</strong> {{ scannedResult }}</p>
+                }
+            </div>
+        }
+
         <mat-form-field required class="input-field">
             <mat-label>Book ISBN</mat-label>
             <input matInput [(ngModel)]="bookISBN" name="bookISBN">

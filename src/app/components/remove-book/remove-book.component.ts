@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,6 +8,9 @@ import { FormsModule } from '@angular/forms';
 import { StrapiService } from '../../services/strapi.service';
 import { SnackBarService } from '../../services/snack-bar.service';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
+import { DecodeHintType, Result } from "@zxing/library";
+import { BarcodeFormat } from '@zxing/library';
 
 @Component({
   selector: 'app-remove-book',
@@ -24,11 +27,37 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
   templateUrl: './remove-book.component.html',
   styleUrl: './remove-book.component.css'
 })
-export class RemoveBookComponent {
+export class RemoveBookComponent implements OnDestroy {
   public bookISBN = '';
   public disableBtn = false;
 
+  private codeReader = new BrowserMultiFormatReader();
+  private controls?: IScannerControls;
+  scannedResult: string | null = null;
+  showCamera = false;
+
   constructor(private strapi: StrapiService, private snackBarService: SnackBarService) {}
+
+
+  scanWithCamera() {
+    this.showCamera = true;
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13]);
+
+    this.codeReader.decodeFromVideoDevice(undefined, 'video', (result: Result | undefined, error, controls) => {
+      this.controls = controls;
+
+      if (result) {
+        this.scannedResult = result.getText();
+        console.log('Scanned ISBN:', this.scannedResult);
+        this.bookISBN = this.scannedResult;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.controls?.stop();
+  }
 
   async RemoveBook() {
     this.disableBtn = true;
@@ -46,6 +75,7 @@ export class RemoveBookComponent {
           const message = '"' + book.name + '"' + ' is succesfully deleted!';
           this.snackBarService.showMessage(message, 'Close');
           this.bookISBN = '';
+          this.scannedResult = '';
           this.disableBtn = false;
         }).catch((err: any) => {
           const message = 'Error. Something went wrong when deleting book';

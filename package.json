@@ -22,6 +22,8 @@
     "@angular/router": "^19.1.0",
     "@tailwindcss/postcss": "^4.1.7",
     "@tailwindcss/vite": "^4.1.7",
+    "@zxing/browser": "^0.1.5",
+    "@zxing/library": "^0.21.3",
     "postcss": "^8.5.3",
     "rxjs": "~7.8.0",
     "strapi-sdk-javascript": "^0.3.3",
