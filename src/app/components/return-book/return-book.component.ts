@@ -49,7 +49,6 @@ export class ReturnBookComponent implements OnDestroy {
 
       if (result) {
         this.scannedResult = result.getText();
-        console.log('Scanned ISBN:', this.scannedResult);
         this.bookISBN = this.scannedResult;
       }
     });
@@ -71,7 +70,6 @@ export class ReturnBookComponent implements OnDestroy {
         this.disableBtn = false; 
       } else {
         const book = books[index];
-        console.log(book);
         this.strapi.ReturnBook(book.documentId, '', '').then((result: any) => {
           const message = '"' + book.name + '"' + ' is succesfully returned by ' + book.child_name;
           this.snackBarService.showMessage(message, 'Close');

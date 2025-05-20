@@ -51,7 +51,6 @@ export class AddNewBookComponent implements  OnDestroy {
 
       if (result) {
         this.scannedResult = result.getText();
-        console.log('Scanned ISBN:', this.scannedResult);
         this.bookISBN = this.scannedResult;
       }
     });

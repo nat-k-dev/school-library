@@ -51,7 +51,6 @@ scanWithCamera() {
 
       if (result) {
         this.scannedResult = result.getText();
-        console.log('Scanned ISBN:', this.scannedResult);
         this.bookISBN = this.scannedResult;
       }
     });
@@ -64,7 +63,6 @@ scanWithCamera() {
   async BorrowBook() {
     this.disableBtn = true;
     await this.strapi.GetBooks().then((result: any) => {
-      console.log(result)
       const books = result.data;
       const index = books.findIndex((book: any) => {
         return book.ISBN === this.bookISBN
@@ -74,7 +72,6 @@ scanWithCamera() {
         this.disableBtn = false; 
       } else {
         const book = books[index];
-        console.log(book);
         this.strapi.BorrowBook(book.documentId, this.childName, this.childGroup, new Date().toISOString().split('T')[0]).then((result: any) => {
           const message = '"' + book.name + '"' + ' is succesfully borrowed by ' + this.childName;
           this.snackBarService.showMessage(message, 'Close');
