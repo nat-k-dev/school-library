@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
-import { StrapiService } from '../../services/strapi.service';
+import { BooksService } from '../../services/books.service';
 import { SnackBarService } from '../../services/snack-bar.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
@@ -39,7 +39,7 @@ export class AddNewBookComponent implements  OnDestroy {
   scannedResult: string | null = null;
   showCamera = false;
 
-  constructor(private strapi: StrapiService, private snackBarService: SnackBarService) {}
+  constructor(private booksService: BooksService, private snackBarService: SnackBarService) {}
 
   scanWithCamera() {
     this.showCamera = true;
@@ -63,8 +63,8 @@ export class AddNewBookComponent implements  OnDestroy {
 
   async AddNewBook() {
     this.disableBtn = true;
-    await this.strapi.PostBook(this.bookISBN, this.bookName, this.bookAuthor).then((result: any) => {
-      const message = '"' + this.bookName + '"' + ' is added!';
+    await this.booksService.AddBook(this.bookISBN, this.bookName, this.bookAuthor).then((result: any) => {
+      const message = '✅ "' + this.bookName + '"' + ' is added!';
       this.snackBarService.showMessage(message, 'Close');
       this.bookISBN = '';
       this.bookName = '';
@@ -72,7 +72,7 @@ export class AddNewBookComponent implements  OnDestroy {
       this.scannedResult = '';
       this.disableBtn = false;
     }).catch((err: any) => {
-      const message = 'Error. Maybe book with this ISBN has been already added';
+      const message = '❌ Error. Maybe book with this ISBN has been already added';
       this.snackBarService.showMessage(message, 'Close');
       this.disableBtn = false; 
     });

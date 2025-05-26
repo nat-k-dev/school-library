@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+/*import { Injectable } from '@angular/core';
 import Strapi from 'strapi-sdk-javascript';
 
 @Injectable({
@@ -58,3 +58,4 @@ export class StrapiService {
     return this.strapi.request('delete', 'api/books/' + id);
   }
 }
+*/

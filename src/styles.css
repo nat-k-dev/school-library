@@ -6,3 +6,7 @@ body {
     color: #00458f; 
 }
 
+.mat-mdc-text-field-wrapper {
+    background-color: white !important;
+}
+

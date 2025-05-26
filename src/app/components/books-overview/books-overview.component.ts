@@ -2,22 +2,20 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/
 import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { SnackBarService } from '../../services/snack-bar.service';
-import { StrapiService } from '../../services/strapi.service';
+import { BooksService } from '../../services/books.service';
 import {MatCardModule} from '@angular/material/card';
+import { take } from 'rxjs';
+
 
 interface Book {
-  "id": number;
-  "documentId": string;
-  "ISBN": string;
-  "name": string;
-  "Author": string;
-  "is_borrowed": boolean;
-  "child_name": string | null;
-  "child_group": string | null;
-  "date": string | null;
-  "createdAt": string;
-  "updatedAt": string;
-  "publishedAt": string;
+  id: number;
+  isbn: string;
+  title: string;
+  author: string;
+  borrowed_by: string;
+  date: string;
+  group: string;
+  available: boolean;
 }
 
 @Component({
@@ -31,16 +29,20 @@ export class BooksOverviewComponent {
   loading = true;
   books: Book[] = [];
 
-  constructor(private strapi: StrapiService, private snackBarService: SnackBarService, private changeDet: ChangeDetectorRef) {
-    this.strapi.GetBooks().then((result: any) => {
-      this.books.length = 0;
-      this.books = result.data;
-      this.loading = false;
-      this.changeDet.detectChanges();     
-    }).catch((err: any) => {
-      const message = 'Error. Something went wrong when getting books list';
-      this.snackBarService.showMessage(message, 'Close');
-      this.loading = false;
+  constructor(private booksService: BooksService, private snackBarService: SnackBarService, private changeDet: ChangeDetectorRef) {
+    this.booksService.GetBooks().pipe(take(1)).subscribe({
+      next: (result: any) => {
+        this.books.length = 0;
+        this.books = result;
+        this.loading = false;
+        this.changeDet.detectChanges();     
+      },
+      error: (err: any) => {
+        console.log(err);
+        const message = '❌ Error. Something went wrong when getting books list';
+        this.snackBarService.showMessage(message, 'Close');
+        this.loading = false;
+      }
     });
   }
 

@@ -5,12 +5,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
-import { StrapiService } from '../../services/strapi.service';
+import { BooksService } from '../../services/books.service';
 import { SnackBarService } from '../../services/snack-bar.service';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { DecodeHintType, Result } from "@zxing/library";
 import { BarcodeFormat } from '@zxing/library';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-return-book',
@@ -37,7 +38,7 @@ export class ReturnBookComponent implements OnDestroy {
   scannedResult: string | null = null;
   showCamera = false;
 
-  constructor(private strapi: StrapiService, private snackBarService: SnackBarService) {}
+  constructor(private booksService: BooksService, private snackBarService: SnackBarService) {}
 
   scanWithCamera() {
     this.showCamera = true;
@@ -60,32 +61,37 @@ export class ReturnBookComponent implements OnDestroy {
 
   async ReturnBook() {
     this.disableBtn = true;
-    await this.strapi.GetBooks().then((result: any) => {
-      const books = result.data;
-      const index = books.findIndex((book: any) => {
-        return book.ISBN === this.bookISBN
-      })
-      if (index === -1) {
-        this.snackBarService.showMessage('Book is not found', 'Close');
+    this.booksService.GetBooks().pipe(take(1)).subscribe({
+      next: (result: any) => {
+        const books = result;
+        const index = books.findIndex((book: any) => {
+          return book.isbn === this.bookISBN
+        })
+        if (index === -1) {
+          this.snackBarService.showMessage('❌ Book is not found', 'Close');
+          this.disableBtn = false; 
+        } else {
+          const book = books[index];
+          this.booksService.ReturnBook(book.id).then((result: any) => {
+            const message = '✅ "' + book.title + '"' + ' is succesfully returned by ' + book.borrowed_by;
+            this.snackBarService.showMessage(message, 'Close');
+            this.bookISBN = '';
+            this.scannedResult = '';
+            this.disableBtn = false; 
+          }).catch((err: any) => {
+            console.log(err);
+            const message = '❌ Error. Something went wrong when trying to return book';
+            this.snackBarService.showMessage(message, 'Close');
+            this.disableBtn = false; 
+          });
+        }    
+      },
+      error: (err: any) => {
+        console.log(err);
+        const message = '❌ Error. Something went wrong when searching for this book';
+        this.snackBarService.showMessage(message, 'Close');
         this.disableBtn = false; 
-      } else {
-        const book = books[index];
-        this.strapi.ReturnBook(book.documentId, '', '').then((result: any) => {
-          const message = '"' + book.name + '"' + ' is succesfully returned by ' + book.child_name;
-          this.snackBarService.showMessage(message, 'Close');
-          this.bookISBN = '';
-          this.scannedResult = '';
-          this.disableBtn = false; 
-        }).catch((err: any) => {
-          const message = 'Error. Something went wrong when trying to return book';
-          this.snackBarService.showMessage(message, 'Close');
-          this.disableBtn = false; 
-        });
       }
-    }).catch((err: any) => {
-      const message = 'Error. Something went wrong when searching for this book';
-      this.snackBarService.showMessage(message, 'Close');
-      this.disableBtn = false; 
-    });;
+    });
   }
 }

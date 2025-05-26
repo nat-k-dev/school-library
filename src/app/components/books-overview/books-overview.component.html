@@ -3,15 +3,15 @@
     <div class="flex flex-col gap-4 mt-10 relative">
         <h1 class="text-center text-2xl">All books</h1>
         @if (!loading) {
-            @for(book of books; track book.documentId) {
+            @for(book of books; track book.isbn) {
                 <mat-card appearance="outlined">
                     <mat-card-content>
-                        <div class="font-semibold">{{ 'Caption: ' + book.name }}</div>
-                        <div>{{ 'Author: ' + book.Author }}</div>
-                        <div>{{ 'ISBN: ' + book.ISBN }}</div>
-                        <div>{{ 'Taken by: ' + (book.child_name ?? ' -') }}</div>
-                        <div>{{ 'From group: ' + (book.child_group ?? '-') }}</div>
-                        <div>{{ 'At date: ' + (book.date ?? '-') }}</div>
+                        <div class="font-semibold">{{ 'Caption: ' + book.title }}</div>
+                        <div>{{ 'Author: ' + book.author }}</div>
+                        <div>{{ 'ISBN: ' + book.isbn }}</div>
+                        <div>{{ 'Taken by: ' + (book.borrowed_by) }}</div>
+                        <div>{{ 'From group: ' + (book.group) }}</div>
+                        <div>{{ 'At date: ' + (book.date) }}</div>
                     </mat-card-content>
                 </mat-card>
             }
