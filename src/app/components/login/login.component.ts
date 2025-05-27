@@ -72,8 +72,6 @@ export class LoginComponent {
   passwordLogin = '';
 
   constructor(private authService: AuthService, private snackBar: MatSnackBar, private router: Router) {
-
-    console.log('process.env.NG_APP_FIREBASE_API_KEY=', process.env.NG_APP_FIREBASE_API_KEY);
   }
 
   login(form: NgForm) {
