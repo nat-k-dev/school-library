@@ -71,7 +71,10 @@ export class LoginComponent {
   emailLogin = '';
   passwordLogin = '';
 
-  constructor(private authService: AuthService, private snackBar: MatSnackBar, private router: Router) {}
+  constructor(private authService: AuthService, private snackBar: MatSnackBar, private router: Router) {
+    console.log('PROCESS.ENV=')
+    console.log(process.env);
+  }
 
   login(form: NgForm) {
     if (form.invalid) return;
