@@ -10,7 +10,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { WelcomeComponent } from '../welcome/welcome.component';
-import type { Context } from "@netlify/edge-functions";
 
 @Component({
   standalone: true,
@@ -72,10 +71,7 @@ export class LoginComponent {
   emailLogin = '';
   passwordLogin = '';
 
-  constructor(private authService: AuthService, private snackBar: MatSnackBar, private router: Router) {
-    const value = Netlify.env.get("NG_APP_FIREBASE_API_KEY");
-    console.log('Netlify.env.get("NG_APP_FIREBASE_API_KEY")=', value)
-  }
+  constructor(private authService: AuthService, private snackBar: MatSnackBar, private router: Router) {}
 
   login(form: NgForm) {
     if (form.invalid) return;
