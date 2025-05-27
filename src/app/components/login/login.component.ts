@@ -9,6 +9,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { WelcomeComponent } from '../welcome/welcome.component';
 
 @Component({
   standalone: true,
@@ -22,8 +23,10 @@ import { Router } from '@angular/router';
     MatCardModule,
     MatDividerModule,
     MatSnackBarModule,
+    WelcomeComponent,
   ],
   template: `
+    <app-welcome class="mt-4 md:mt-12 px-4 flex justify-center" /> 
     <mat-card class="auth-card">
       <h2>Login</h2>
       <form #loginForm="ngForm" (ngSubmit)="login(loginForm)">

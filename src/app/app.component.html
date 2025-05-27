@@ -1,18 +1,24 @@
 <div class="h-screen w-screen flex flex-col">
-  <div class="shadow-md px-4 py-6 flex gap-4 items-center justify-between md:justify-evenly">
+  <div class="shadow-md px-4 py-6 grid grid-cols-3 items-center">
+    <div></div>
     <div class="flex items-center justify-center gap-4">
       <img src="logo4.png" alt="logo" class="h-12 w-12 rounded-2xl">
       <div class="text-xl text-blue-950 relative">
         School library
       </div>
     </div>
-    
-    @if (user$ | async; as user) {
-      <button type="button" (click)="logout()" class="text-xl">Logout</button>
-    }
+
+    <div class="text-right">
+      @if (user$ | async; as user) {
+        <button mat-button (click)="logout()" class="flex flex-col items-center !px-0">
+          <mat-icon class="!mx-0">exit_to_app</mat-icon>
+          <div>Logout</div>
+        </button>
+      }
+    </div>
   </div>
   <div>
-    
+
   </div>
   <div class="grow  background-stripes">
     <router-outlet></router-outlet>
