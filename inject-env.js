@@ -1,12 +1,5 @@
 const fs = require('fs');
 
-fs.readFile('env.txt', 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log('✅' , data);
-  });
 
 console.log('INJECT_ENV1:', process.env.NG_APP_FIREBASE_AUTH_DOMAIN);
 console.log('INJECT_ENV2:', process.env.NG_APP_FIREBASE_PROJECT_ID);
