@@ -8,8 +8,6 @@ import { environment } from '../../injected-environment';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { firebaseAuthInterceptor } from './interceptors/firebase-auth.interceptor';
 
-console.log('IS PRODUCTION ENV??????', environment)
-
 
 export const appConfig: ApplicationConfig = {
   providers: [
