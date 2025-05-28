@@ -46,12 +46,6 @@
                   "maximumError": "5MB"
                 }
               ],
-              "fileReplacements": [
-                {
-                  "replace": "/opt/build/repo/src/environments/environment.ts",
-                  "with": "/opt/build/repo/src/environments/environment.prod.ts"
-                }
-              ],
               "outputHashing": "all"
             },
             "development": {
