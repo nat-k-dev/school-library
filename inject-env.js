@@ -1,9 +1,17 @@
 const fs = require('fs');
 
+fs.readFile('env.txt', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log('✅' , data);
+  });
+
 console.log('INJECT_ENV1:', process.env.NG_APP_FIREBASE_AUTH_DOMAIN);
 console.log('INJECT_ENV2:', process.env.NG_APP_FIREBASE_PROJECT_ID);
 
-const envProdPath = '/opt/build/repo/src/environments/environment.ts';
+const envProdPath = 'env.ts';
 
 const content = `
 export const environment = {
@@ -20,4 +28,4 @@ export const environment = {
 `;
 
 fs.writeFileSync(envProdPath, content);
-console.log('✅ Firebase config injected into environment.ts');
+console.log('✅ Firebase config injected into env.ts');
