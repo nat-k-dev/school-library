@@ -4,11 +4,11 @@ import { routes } from './app.routes';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
-import { environment } from '../environments/environments';
+import { environment } from '../../injected-environment';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { firebaseAuthInterceptor } from './interceptors/firebase-auth.interceptor';
 
-console.log('IS PRODUCTION ENV??????', environment.production)
+console.log('IS PRODUCTION ENV??????', environment)
 
 
 export const appConfig: ApplicationConfig = {
