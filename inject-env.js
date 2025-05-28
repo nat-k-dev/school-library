@@ -11,7 +11,7 @@ fs.readFile('env.txt', 'utf8', (err, data) => {
 console.log('INJECT_ENV1:', process.env.NG_APP_FIREBASE_AUTH_DOMAIN);
 console.log('INJECT_ENV2:', process.env.NG_APP_FIREBASE_PROJECT_ID);
 
-const envProdPath = 'env.ts';
+const envProdPath = 'injected-environment.ts';
 
 const content = `
 export const environment = {
@@ -28,4 +28,4 @@ export const environment = {
 `;
 
 fs.writeFileSync(envProdPath, content);
-console.log('✅ Firebase config injected into env.ts');
+console.log('✅ Firebase config injected into injected-environment.ts');
