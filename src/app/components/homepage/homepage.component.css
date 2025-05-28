@@ -1,7 +1,7 @@
 @reference "../../../styles.css";
 
 .container-page {
-    @apply w-full h-full flex flex-col justify-center items-center py-4 md:py-6;
+    @apply w-full h-full flex flex-col justify-center items-center py-3 md:py-6;
 }
 
 .container-buttons {
