@@ -3,7 +3,7 @@ const fs = require('fs');
 console.log('INJECT_ENV1:', process.env.NG_APP_FIREBASE_AUTH_DOMAIN);
 console.log('INJECT_ENV2:', process.env.NG_APP_FIREBASE_PROJECT_ID);
 
-const envProdPath = 'src/environments/environment.ts';
+const envProdPath = '/opt/build/repo/src/environments/environment.ts';
 
 const content = `
 export const environment = {
