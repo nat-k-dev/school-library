@@ -1,20 +1,15 @@
 import { Injectable } from '@angular/core';
-import Strapi from 'strapi-sdk-javascript';
 import { Firestore, collection, addDoc, collectionData, doc, deleteDoc, updateDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { AuthService } from './auth.service';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class BooksService {
-  readonly strapiURL = 'https://clever-thrill-d79f17c8f9.strapiapp.com';
-  private strapi: Strapi = new Strapi(this.strapiURL);
-
   private booksRef;
 
-  constructor(private firestore: Firestore, private authService: AuthService) {
+  constructor(private firestore: Firestore) {
     this.booksRef = collection(this.firestore, 'books');
   }
 
@@ -59,8 +54,4 @@ export class BooksService {
     const bookDoc = doc(this.firestore, `books/${id}`);
     return deleteDoc(bookDoc);
   }
-
-
-
-
 }
