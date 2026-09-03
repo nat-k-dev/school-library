@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { Firestore, collection, addDoc, collectionData, doc, deleteDoc, updateDoc } from '@angular/fire/firestore';
+import { Injectable, NgZone } from '@angular/core';
+import { Firestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { Observable } from 'rxjs';
 
 
@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 export class BooksService {
   private booksRef;
 
-  constructor(private firestore: Firestore) {
+  constructor(private firestore: Firestore, private zone: NgZone) {
     this.booksRef = collection(this.firestore, 'books');
   }
 
@@ -27,7 +27,18 @@ export class BooksService {
   }
 
   GetBooks(): Observable<any[]> {
-    return collectionData(this.booksRef, { idField: 'id' });
+    // Stands in for AngularFire's collectionData: a live snapshot listener,
+    // with each document keyed by its own id. Firestore invokes the callbacks
+    // outside Angular's zone, so emissions are handed back inside it.
+    return new Observable<any[]>((subscriber) =>
+      onSnapshot(
+        this.booksRef,
+        (snapshot) => this.zone.run(() =>
+          subscriber.next(snapshot.docs.map((book) => ({ ...book.data(), id: book.id })))
+        ),
+        (error) => this.zone.run(() => subscriber.error(error))
+      )
+    );
   }
 
   BorrowBook(id: number, childName: string, childGroup: string, date: string) {
