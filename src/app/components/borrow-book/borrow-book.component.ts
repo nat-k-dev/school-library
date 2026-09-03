@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -26,6 +26,7 @@ import { take } from 'rxjs';
     MatProgressSpinnerModule,
    ],
   templateUrl: './borrow-book.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './borrow-book.component.css'
 })
 export class BorrowBookComponent implements OnDestroy {

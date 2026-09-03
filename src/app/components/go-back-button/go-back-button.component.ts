@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
   selector: 'app-go-back-button',
   imports: [ MatIconModule, MatButtonModule ],
   templateUrl: './go-back-button.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './go-back-button.component.css'
 })
 export class GoBackButtonComponent {

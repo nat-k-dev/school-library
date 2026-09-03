@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterModule } from '@angular/router';
@@ -7,6 +7,7 @@ import { Router, RouterModule } from '@angular/router';
   selector: 'app-homepage',
   imports: [MatButtonModule, MatIconModule, RouterModule, MatButtonModule, MatIconModule],
   templateUrl: './homepage.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './homepage.component.css'
 })
 export class HomepageComponent {

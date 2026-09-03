@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { getApps, initializeApp } from 'firebase/app';
 import { Firestore, getFirestore } from 'firebase/firestore';
 import { environment } from '../../injected-environment';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { routes } from './app.routes';
 
 
@@ -17,6 +17,6 @@ export const appConfig: ApplicationConfig = {
       provide: Firestore,
       useFactory: () => getFirestore(getApps()[0] ?? initializeApp(environment.firebase)),
     },
-    provideHttpClient()
+    provideHttpClient(withXhr())
   ]
 };
