@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,23 +28,24 @@ import { T } from '../../shared/nl';
       </div>
 
       <div class="grid md:grid-cols-2 gap-6 w-full max-w-3xl">
-        <form class="card flex flex-col gap-3" (ngSubmit)="create()">
+        <!-- [formGroup] is what turns (ngSubmit) on; without it the browser does a native submit and reloads. -->
+        <form class="card flex flex-col gap-3" [formGroup]="createForm" (ngSubmit)="create()">
           <h2 class="m-0 text-lg font-semibold">{{ t.onboarding.createTitle }}</h2>
           <mat-form-field class="input-field">
             <mat-label>{{ t.onboarding.schoolName }}</mat-label>
-            <input matInput [formControl]="schoolName" autocomplete="organization">
+            <input matInput formControlName="name" autocomplete="organization">
             <mat-error>{{ t.fields.required }}</mat-error>
           </mat-form-field>
-          <mat-checkbox [formControl]="withDemo" class="text-sm">{{ t.onboarding.demoData }}</mat-checkbox>
+          <mat-checkbox formControlName="demo" class="text-sm">{{ t.onboarding.demoData }}</mat-checkbox>
           <button mat-flat-button type="submit" class="primary-button" [disabled]="busy()">{{ t.onboarding.createButton }}</button>
         </form>
 
-        <form class="card flex flex-col gap-3" (ngSubmit)="join()">
+        <form class="card flex flex-col gap-3" [formGroup]="joinForm" (ngSubmit)="join()">
           <h2 class="m-0 text-lg font-semibold">{{ t.onboarding.joinTitle }}</h2>
           <p class="m-0 text-sm text-slate-600">{{ t.onboarding.joinText }}</p>
           <mat-form-field class="input-field">
             <mat-label>{{ t.onboarding.joinCode }}</mat-label>
-            <input matInput [formControl]="joinCode" autocomplete="off" class="uppercase tracking-widest">
+            <input matInput formControlName="code" autocomplete="off" class="uppercase tracking-widest">
             <mat-error>{{ t.fields.required }}</mat-error>
           </mat-form-field>
           <button mat-stroked-button type="submit" class="primary-button" [disabled]="busy()">{{ t.onboarding.joinButton }}</button>
@@ -63,31 +64,37 @@ export class OnboardingComponent {
   private readonly school = inject(SchoolService);
   private readonly students = inject(StudentsService);
   private readonly library = inject(LibraryService);
+  private readonly fb = inject(NonNullableFormBuilder);
 
   protected readonly t = T;
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly schoolName = new FormControl('', { nonNullable: true, validators: Validators.required });
-  protected readonly withDemo = new FormControl(false, { nonNullable: true });
-  protected readonly joinCode = new FormControl('', { nonNullable: true, validators: Validators.required });
+  protected readonly createForm = this.fb.group({
+    name: ['', Validators.required],
+    demo: [false],
+  });
+  protected readonly joinForm = this.fb.group({
+    code: ['', Validators.required],
+  });
 
   protected async create(): Promise<void> {
-    if (this.schoolName.invalid) {
-      this.schoolName.markAsTouched();
+    if (this.createForm.invalid) {
+      this.createForm.markAllAsTouched();
       return;
     }
+    const { name, demo } = this.createForm.getRawValue();
     await this.run(async () => {
-      await this.school.createSchool(this.schoolName.value);
-      if (this.withDemo.value) await this.seedDemo();
+      await this.school.createSchool(name);
+      if (demo) await this.seedDemo();
     });
   }
 
   protected async join(): Promise<void> {
-    if (this.joinCode.invalid) {
-      this.joinCode.markAsTouched();
+    if (this.joinForm.invalid) {
+      this.joinForm.markAllAsTouched();
       return;
     }
-    await this.run(() => this.school.joinSchool(this.joinCode.value));
+    await this.run(() => this.school.joinSchool(this.joinForm.getRawValue().code));
   }
 
   /** The school document arrives through a listener; wait for it before writing under it. */

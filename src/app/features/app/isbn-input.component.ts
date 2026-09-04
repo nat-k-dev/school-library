@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,13 +21,14 @@ import { ScannerComponent } from '../../shared/scanner/scanner.component';
   template: `
     <div class="flex flex-col gap-3 items-stretch">
       <app-scanner (scanned)="emit($event)" />
-      <form class="flex gap-2 items-start" (ngSubmit)="submit()">
+      <!-- [formGroup] is what turns (ngSubmit) on; without it the browser does a native submit and reloads. -->
+      <form class="flex gap-2 items-start" [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field class="input-field">
           <mat-label>{{ t.fields.isbn }}</mat-label>
-          <input matInput [formControl]="control" inputmode="numeric" autocomplete="off" [disabled]="disabled()">
-          @if (control.hasError('required')) {
+          <input matInput formControlName="isbn" inputmode="numeric" autocomplete="off">
+          @if (form.controls.isbn.hasError('required')) {
             <mat-error>{{ t.fields.required }}</mat-error>
-          } @else if (control.hasError('isbn')) {
+          } @else if (form.controls.isbn.hasError('isbn')) {
             <mat-error>{{ t.fields.invalidIsbn }}</mat-error>
           }
         </mat-form-field>
@@ -43,26 +44,30 @@ export class IsbnInputComponent {
   readonly disabled = input(false);
   readonly isbn = output<string>();
 
+  private readonly fb = inject(NonNullableFormBuilder);
   protected readonly t = T;
-  protected readonly control = new FormControl('', { nonNullable: true, validators: [Validators.required, isbnValidator] });
+  protected readonly form = this.fb.group({
+    isbn: ['', [Validators.required, isbnValidator]],
+  });
   protected readonly last = signal<string | null>(null);
 
   protected submit(): void {
-    if (this.control.invalid) {
-      this.control.markAsTouched();
+    if (this.disabled()) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
-    this.emit(toIsbn13(this.control.value)!);
+    this.emit(toIsbn13(this.form.controls.isbn.value)!);
   }
 
   protected emit(isbn: string): void {
-    this.control.setValue(isbn);
+    this.form.controls.isbn.setValue(isbn);
     this.last.set(isbn);
     this.isbn.emit(isbn);
   }
 
   reset(): void {
-    this.control.reset();
+    this.form.reset();
     this.last.set(null);
   }
 }
