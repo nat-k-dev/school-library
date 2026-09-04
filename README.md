@@ -118,10 +118,6 @@ Netlify builds `main`. The Firebase web config is read from the
 Needs the Firebase Blaze plan (Cloud Functions), so parked until the first
 paying school:
 
-- [ ] Weekly overdue e-mail to the school (teacher / leescoördinator) per
-      group. Until then: Overzicht → print button gives a paper list.
-- [ ] E-mail to info@biebouders.nl when a school's trial ends in 14 days and
-      when a school becomes read-only, so invoices go out on time.
 - [ ] Server-side ISBN lookup proxy for the KB (jsru.kb.nl, no CORS) with a
       shared `isbnCache/{isbn}` collection.
 - [ ] Nightly reset of a public demo school.
