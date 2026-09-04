@@ -1,36 +1,16 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Router, RouterModule } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { T } from '../../shared/nl';
 
 @Component({
   selector: 'app-homepage',
-  imports: [MatButtonModule, MatIconModule, RouterModule, MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatIconModule, RouterLink],
   templateUrl: './homepage.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './homepage.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './homepage.component.css',
 })
 export class HomepageComponent {
-  constructor(private router: Router) {}
-
-  AddNewBook() {
-    this.router.navigateByUrl('add-new-book');
-  }
-
-  RemoveBook() {
-    this.router.navigateByUrl('remove-book');
-  }
-
-  ReturnBook() {
-    this.router.navigateByUrl('return-book');
-  }
-
-  BorrowBook() {
-    this.router.navigateByUrl('borrow-book');
-  }
-
-  BooksOverview() {
-    this.router.navigateByUrl('books-overview');
-  }
-
+  protected readonly t = T.home;
 }

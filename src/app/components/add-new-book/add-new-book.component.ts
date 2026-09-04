@@ -1,82 +1,66 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { FormsModule } from '@angular/forms';
-import { BooksService } from '../../services/books.service';
-import { SnackBarService } from '../../services/snack-bar.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
-import { DecodeHintType, Result } from "@zxing/library";
-import { BarcodeFormat } from '@zxing/library';
-
+import { BooksService, LibraryError } from '../../services/books.service';
+import { SnackBarService } from '../../services/snack-bar.service';
+import { toIsbn13 } from '../../shared/isbn';
+import { isbnValidator } from '../../shared/isbn-validator';
+import { T } from '../../shared/nl';
+import { ScannerComponent } from '../../shared/scanner/scanner.component';
+import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
 
 @Component({
   selector: 'app-add-new-book',
-  imports: [ 
-    GoBackButtonComponent, 
-    MatFormField, 
-    MatLabel, 
-    MatInputModule, 
-    MatButtonModule, 
-    MatIcon, 
-    FormsModule,
+  imports: [
+    GoBackButtonComponent,
+    ScannerComponent,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
     MatProgressSpinnerModule,
   ],
   templateUrl: './add-new-book.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './add-new-book.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddNewBookComponent implements  OnDestroy {
-  public bookISBN = '';
-  public bookName = '';
-  public bookAuthor = '';
-  public disableBtn = false;
-  
-  private codeReader = new BrowserMultiFormatReader();
-  private controls?: IScannerControls;
-  scannedResult: string | null = null;
-  showCamera = false;
+export class AddNewBookComponent {
+  private readonly books = inject(BooksService);
+  private readonly snackBar = inject(SnackBarService);
+  private readonly fb = inject(NonNullableFormBuilder);
 
-  constructor(private booksService: BooksService, private snackBarService: SnackBarService) {}
+  protected readonly t = T;
+  protected readonly busy = signal(false);
+  protected readonly form = this.fb.group({
+    isbn: ['', [Validators.required, isbnValidator]],
+    title: ['', Validators.required],
+    author: ['', Validators.required],
+  });
 
-  scanWithCamera() {
-    this.showCamera = true;
-    const hints = new Map();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13]);
-
-    this.codeReader.decodeFromVideoDevice(undefined, 'video', (result: Result | undefined, error, controls) => {
-      this.controls = controls;
-
-      if (result) {
-        this.scannedResult = result.getText();
-        this.bookISBN = this.scannedResult;
-      }
-    });
+  protected onScanned(isbn: string): void {
+    this.form.controls.isbn.setValue(isbn);
+    this.form.controls.isbn.markAsTouched();
   }
 
-  
-  ngOnDestroy(): void {
-    this.controls?.stop();
+  protected async submit(): Promise<void> {
+    if (this.form.invalid || this.busy()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const { isbn, title, author } = this.form.getRawValue();
+    this.busy.set(true);
+    try {
+      await this.books.addBook({ isbn: toIsbn13(isbn)!, title, author });
+      this.snackBar.success(T.add.done(title));
+      this.form.reset();
+    } catch (err) {
+      this.snackBar.error(err instanceof LibraryError && err.code === 'duplicate-isbn' ? T.add.duplicate : T.add.failed);
+    } finally {
+      this.busy.set(false);
+    }
   }
-
-  async AddNewBook() {
-    this.disableBtn = true;
-    await this.booksService.AddBook(this.bookISBN, this.bookName, this.bookAuthor).then((result: any) => {
-      const message = '✅ "' + this.bookName + '"' + ' is added!';
-      this.snackBarService.showMessage(message, 'Close');
-      this.bookISBN = '';
-      this.bookName = '';
-      this.bookAuthor = '';
-      this.scannedResult = '';
-      this.disableBtn = false;
-    }).catch((err: any) => {
-      const message = '❌ Error. Maybe book with this ISBN has been already added';
-      this.snackBarService.showMessage(message, 'Close');
-      this.disableBtn = false; 
-    });
-  }
-
 }

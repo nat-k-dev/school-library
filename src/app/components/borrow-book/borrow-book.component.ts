@@ -1,104 +1,75 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { FormsModule } from '@angular/forms';
-import { BooksService } from '../../services/books.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { BooksService, LibraryError } from '../../services/books.service';
 import { SnackBarService } from '../../services/snack-bar.service';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
-import { DecodeHintType, Result } from "@zxing/library";
-import { BarcodeFormat } from '@zxing/library';
-import { take } from 'rxjs';
+import { toIsbn13 } from '../../shared/isbn';
+import { isbnValidator } from '../../shared/isbn-validator';
+import { T } from '../../shared/nl';
+import { ScannerComponent } from '../../shared/scanner/scanner.component';
+import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
 
 @Component({
   selector: 'app-borrow-book',
-  imports: [ 
-    GoBackButtonComponent, 
-    MatFormField, 
-    MatLabel, 
-    MatInputModule, 
-    MatButtonModule, 
-    MatIcon, 
-    FormsModule,
+  imports: [
+    GoBackButtonComponent,
+    ScannerComponent,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
     MatProgressSpinnerModule,
-   ],
+  ],
   templateUrl: './borrow-book.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './borrow-book.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BorrowBookComponent implements OnDestroy {
-  public bookISBN = '';
-  public childName = '';
-  public childGroup = '';
-  public disableBtn = false;
+export class BorrowBookComponent {
+  private readonly books = inject(BooksService);
+  private readonly snackBar = inject(SnackBarService);
+  private readonly fb = inject(NonNullableFormBuilder);
 
-  private codeReader = new BrowserMultiFormatReader();
-  private controls?: IScannerControls;
-  scannedResult: string | null = null;
-  showCamera = false;
+  protected readonly t = T;
+  protected readonly busy = signal(false);
+  protected readonly form = this.fb.group({
+    isbn: ['', [Validators.required, isbnValidator]],
+    childName: ['', Validators.required],
+    group: ['', Validators.required],
+  });
 
-  constructor(private booksService: BooksService, private snackBarService: SnackBarService) {}
-
-  
-scanWithCamera() {
-    this.showCamera = true;
-    const hints = new Map();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13]);
-
-    this.codeReader.decodeFromVideoDevice(undefined, 'video', (result: Result | undefined, error, controls) => {
-      this.controls = controls;
-
-      if (result) {
-        this.scannedResult = result.getText();
-        this.bookISBN = this.scannedResult;
-      }
-    });
+  protected onScanned(isbn: string): void {
+    this.form.controls.isbn.setValue(isbn);
+    this.form.controls.isbn.markAsTouched();
   }
 
-  ngOnDestroy(): void {
-    this.controls?.stop();
+  protected async submit(): Promise<void> {
+    if (this.form.invalid || this.busy()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const { isbn, childName, group } = this.form.getRawValue();
+    this.busy.set(true);
+    try {
+      const book = await this.books.borrowBook(toIsbn13(isbn)!, childName, group);
+      this.snackBar.success(T.borrow.done(book.title, book.borrowedBy));
+      // Keep the group: a leesouder usually lends to one class at a time.
+      this.form.reset({ group });
+    } catch (err) {
+      this.snackBar.error(this.describe(err));
+    } finally {
+      this.busy.set(false);
+    }
   }
 
-  async BorrowBook() {
-    this.disableBtn = true;
-    this.booksService.GetBooks().pipe(take(1)).subscribe({
-      next: (result: any) => {
-        const books = result;
-        const index = books.findIndex((book: any) => {
-          return book.isbn === this.bookISBN
-        })
-        if (index === -1) {
-          this.snackBarService.showMessage('❌ Book is not found', 'Close');
-          this.disableBtn = false; 
-        } else {
-          const book = books[index];
-
-          this.booksService.BorrowBook(book.id, this.childName, this.childGroup, new Date().toISOString().split('T')[0]).then((result: any) => {
-            const message = '✅ "' + book.title + '"' + ' is succesfully borrowed by ' + this.childName;
-            this.snackBarService.showMessage(message, 'Close');
-            this.bookISBN = '';
-            this.childGroup = '';
-            this.childName = '';
-            this.scannedResult = '';
-            this.disableBtn = false;
-          }).catch((err: any) => {
-            console.log(err);
-            const message = '❌ Error. Maybe book has been already taken';
-            this.snackBarService.showMessage(message, 'Close');
-            this.disableBtn = false; 
-          });
-        }     
-      },
-      error: (err: any) => {
-        console.log(err);
-        const message = '❌ Error. Something went wrong when searching for this book';
-        this.snackBarService.showMessage(message, 'Close');
-        this.disableBtn = false; 
-      }
-    });
+  private describe(err: unknown): string {
+    if (err instanceof LibraryError) {
+      if (err.code === 'not-found') return T.common.notFound;
+      if (err.code === 'already-borrowed') return T.borrow.alreadyBorrowed(err.book?.borrowedBy ?? '');
+    }
+    return T.borrow.failed;
   }
-
 }

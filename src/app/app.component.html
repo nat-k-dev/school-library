@@ -1,20 +1,9 @@
 <div class="h-screen w-screen flex flex-col">
-  <div class="shadow-md px-4 py-6 grid grid-cols-3 items-center">
-    <div></div>
-    <div class="flex items-center justify-center gap-4">
-      <img src="/assets/images/logo4.png" alt="logo" class="h-12 w-12 rounded-2xl">
-      <div class="text-xl text-blue-950 relative text-nowrap">
-        School library
-      </div>
-    </div>
-
-    <div class="text-right"></div>
+  <header class="shadow-md px-4 py-6 flex items-center justify-center gap-4">
+    <img src="/assets/images/logo4.png" alt="" class="h-12 w-12 rounded-2xl">
+    <div class="text-xl text-blue-950 text-nowrap">{{ title }}</div>
+  </header>
+  <div class="grow background-stripes overflow-y-auto">
+    <router-outlet />
   </div>
-  <div>
-
-  </div>
-  <div class="grow  background-stripes">
-    <router-outlet></router-outlet>
-  </div>
-  
 </div>

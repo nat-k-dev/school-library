@@ -1,48 +1,39 @@
-<div class="p-6 md:p-12 lg:max-w-[633px] lg:mx-auto">
-    <app-go-back-button />
-    <div class="flex flex-col gap-4 mt-10 relative">
-        <h1 class="text-center text-2xl">Borrow book</h1>
+<div class="page">
+  <app-go-back-button />
+  <form class="page-form" [formGroup]="form" (ngSubmit)="submit()">
+    <h1 class="text-center text-2xl">{{ t.borrow.title }}</h1>
 
-        @if (!showCamera) {
-            <button mat-fab extended class="middle-button" (click)="scanWithCamera()">
-                <mat-icon>camera_alt</mat-icon>
-                Scan ISBN with camera
-            </button>
-        }
-        @if (showCamera) {
-            <div>
-                <video id="video" width="300" height="200" autoplay muted class="rounded-2xl mx-auto"></video>
-                @if (scannedResult) {
-                    <p class="mt-4"><strong>Scanned ISBN:</strong> {{ scannedResult }}</p>
-                }
-            </div>
-        }
+    <app-scanner (scanned)="onScanned($event)" />
 
+    <mat-form-field class="input-field">
+      <mat-label>{{ t.fields.isbn }}</mat-label>
+      <input matInput formControlName="isbn" inputmode="numeric" autocomplete="off">
+      @if (form.controls.isbn.hasError('required')) {
+        <mat-error>{{ t.fields.required }}</mat-error>
+      } @else if (form.controls.isbn.hasError('isbn')) {
+        <mat-error>{{ t.fields.invalidIsbn }}</mat-error>
+      }
+    </mat-form-field>
 
-        <mat-form-field required class="input-field">
-            <mat-label>Book ISBN</mat-label>
-            <input matInput [(ngModel)]="bookISBN" name="bookISBN">
-        </mat-form-field>
-        <mat-form-field required class="input-field">
-            <mat-label>Child name</mat-label>
-            <input matInput [(ngModel)]="childName" name="childName">
-        </mat-form-field>
-        <mat-form-field required class="input-field">
-            <mat-label>Child group</mat-label>
-            <input matInput [(ngModel)]="childGroup" name="childGroup">
-        </mat-form-field>
-        <div class="w-full flex md:block">
-            <button mat-fab extended class="middle-button" (click)="BorrowBook()" [disabled]="disableBtn">
-                <mat-icon>import_contacts</mat-icon>
-                Borrow book
-            </button>
-        </div>
+    <mat-form-field class="input-field">
+      <mat-label>{{ t.fields.childName }}</mat-label>
+      <input matInput formControlName="childName" autocomplete="off">
+      <mat-error>{{ t.fields.required }}</mat-error>
+    </mat-form-field>
 
-        @if (disableBtn) {
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <mat-spinner></mat-spinner>
-            </div>
-        }
-    </div>
+    <mat-form-field class="input-field">
+      <mat-label>{{ t.fields.group }}</mat-label>
+      <input matInput formControlName="group" autocomplete="off">
+      <mat-error>{{ t.fields.required }}</mat-error>
+    </mat-form-field>
+
+    <button mat-fab extended type="submit" class="middle-button" [disabled]="busy()">
+      <mat-icon>import_contacts</mat-icon>
+      {{ t.borrow.submit }}
+    </button>
+
+    @if (busy()) {
+      <div class="busy-overlay"><mat-spinner /></div>
+    }
+  </form>
 </div>
-

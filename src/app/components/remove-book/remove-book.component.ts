@@ -1,99 +1,84 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { FormsModule } from '@angular/forms';
-import { BooksService } from '../../services/books.service';
+import { MatDialog } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { firstValueFrom } from 'rxjs';
+import { BooksService, LibraryError } from '../../services/books.service';
 import { SnackBarService } from '../../services/snack-bar.service';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
-import { DecodeHintType, Result } from "@zxing/library";
-import { BarcodeFormat } from '@zxing/library';
-import { take } from 'rxjs';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { toIsbn13 } from '../../shared/isbn';
+import { isbnValidator } from '../../shared/isbn-validator';
+import { T } from '../../shared/nl';
+import { ScannerComponent } from '../../shared/scanner/scanner.component';
+import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
 
 @Component({
   selector: 'app-remove-book',
-  imports: [ 
-    GoBackButtonComponent, 
-    MatFormField, 
-    MatLabel, 
-    MatInputModule, 
-    MatButtonModule, 
-    MatIcon, 
-    FormsModule,
+  imports: [
+    GoBackButtonComponent,
+    ScannerComponent,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
     MatProgressSpinnerModule,
-   ],
+  ],
   templateUrl: './remove-book.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './remove-book.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RemoveBookComponent implements OnDestroy {
-  public bookISBN = '';
-  public disableBtn = false;
+export class RemoveBookComponent {
+  private readonly books = inject(BooksService);
+  private readonly snackBar = inject(SnackBarService);
+  private readonly dialog = inject(MatDialog);
+  private readonly fb = inject(NonNullableFormBuilder);
 
-  private codeReader = new BrowserMultiFormatReader();
-  private controls?: IScannerControls;
-  scannedResult: string | null = null;
-  showCamera = false;
+  protected readonly t = T;
+  protected readonly busy = signal(false);
+  protected readonly form = this.fb.group({
+    isbn: ['', [Validators.required, isbnValidator]],
+  });
 
-  constructor(private booksService: BooksService, private snackBarService: SnackBarService) {}
+  protected onScanned(isbn: string): void {
+    this.form.controls.isbn.setValue(isbn);
+    this.form.controls.isbn.markAsTouched();
+  }
 
-
-  scanWithCamera() {
-    this.showCamera = true;
-    const hints = new Map();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13]);
-
-    this.codeReader.decodeFromVideoDevice(undefined, 'video', (result: Result | undefined, error, controls) => {
-      this.controls = controls;
-
-      if (result) {
-        this.scannedResult = result.getText();
-        this.bookISBN = this.scannedResult;
+  protected async submit(): Promise<void> {
+    if (this.form.invalid || this.busy()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const isbn = toIsbn13(this.form.controls.isbn.value)!;
+    this.busy.set(true);
+    try {
+      const book = await this.books.findByIsbn(isbn);
+      if (!book) {
+        this.snackBar.error(T.common.notFound);
+        return;
       }
-    });
+      if (!(await this.confirm(book.title))) return;
+      await this.books.deleteBook(isbn);
+      this.snackBar.success(T.remove.done(book.title));
+      this.form.reset();
+    } catch (err) {
+      this.snackBar.error(err instanceof LibraryError && err.code === 'not-found' ? T.common.notFound : T.remove.failed);
+    } finally {
+      this.busy.set(false);
+    }
   }
 
-  ngOnDestroy(): void {
-    this.controls?.stop();
+  private confirm(title: string): Promise<boolean> {
+    const data: ConfirmDialogData = {
+      message: T.remove.confirm(title),
+      confirmLabel: T.remove.confirmYes,
+      cancelLabel: T.remove.confirmNo,
+    };
+    const ref = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, { data });
+    return firstValueFrom(ref.afterClosed()).then((result) => result === true);
   }
-
-  async RemoveBook() {
-    this.disableBtn = true;
-    this.booksService.GetBooks().pipe(take(1)).subscribe({
-      next: (result: any) => {
-        const books = result;
-        const index = books.findIndex((book: any) => {
-          return book.isbn === this.bookISBN
-        })
-        if (index === -1) {
-          this.snackBarService.showMessage('❌ Book is not found', 'Close');
-          this.disableBtn = false; 
-        } else {
-          const book = books[index];
-          this.booksService.DeleteBook(book.id).then((result: any) => {
-            const message = '✅ "' + book.title + '"' + ' is succesfully deleted!';
-            this.snackBarService.showMessage(message, 'Close');
-            this.bookISBN = '';
-            this.scannedResult = '';
-            this.disableBtn = false;
-          }).catch((err: any) => {
-            console.log(err);
-            const message = '❌ Error. Something went wrong when deleting book';
-            this.snackBarService.showMessage(message, 'Close');
-            this.disableBtn = false; 
-          });
-        }    
-      },
-      error: (err: any) => {
-        console.log(err);
-        const message = '❌ Error. Something went wrong when searching for this book';
-        this.snackBarService.showMessage(message, 'Close');
-        this.disableBtn = false; 
-      }
-    });
-  }
-  
 }

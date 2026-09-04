@@ -1,98 +1,73 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { FormsModule } from '@angular/forms';
-import { BooksService } from '../../services/books.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { BooksService, LibraryError } from '../../services/books.service';
 import { SnackBarService } from '../../services/snack-bar.service';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
-import { DecodeHintType, Result } from "@zxing/library";
-import { BarcodeFormat } from '@zxing/library';
-import { take } from 'rxjs';
+import { toIsbn13 } from '../../shared/isbn';
+import { isbnValidator } from '../../shared/isbn-validator';
+import { T } from '../../shared/nl';
+import { ScannerComponent } from '../../shared/scanner/scanner.component';
+import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
 
 @Component({
   selector: 'app-return-book',
-  imports: [ 
-    GoBackButtonComponent, 
-    MatFormField, 
-    MatLabel, 
-    MatInputModule, 
-    MatButtonModule, 
-    MatIcon, 
-    FormsModule,
+  imports: [
+    GoBackButtonComponent,
+    ScannerComponent,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
     MatProgressSpinnerModule,
-   ],
+  ],
   templateUrl: './return-book.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './return-book.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReturnBookComponent implements OnDestroy {
-  public bookISBN = '';
-  public disableBtn = false;
+export class ReturnBookComponent {
+  private readonly books = inject(BooksService);
+  private readonly snackBar = inject(SnackBarService);
+  private readonly fb = inject(NonNullableFormBuilder);
 
+  protected readonly t = T;
+  protected readonly busy = signal(false);
+  protected readonly form = this.fb.group({
+    isbn: ['', [Validators.required, isbnValidator]],
+  });
 
-  private codeReader = new BrowserMultiFormatReader();
-  private controls?: IScannerControls;
-  scannedResult: string | null = null;
-  showCamera = false;
-
-  constructor(private booksService: BooksService, private snackBarService: SnackBarService) {}
-
-  scanWithCamera() {
-    this.showCamera = true;
-    const hints = new Map();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13]);
-
-    this.codeReader.decodeFromVideoDevice(undefined, 'video', (result: Result | undefined, error, controls) => {
-      this.controls = controls;
-
-      if (result) {
-        this.scannedResult = result.getText();
-        this.bookISBN = this.scannedResult;
-      }
-    });
+  protected onScanned(isbn: string): void {
+    this.form.controls.isbn.setValue(isbn);
+    this.form.controls.isbn.markAsTouched();
+    // Returning needs nothing else, so a scan is a submit.
+    void this.submit();
   }
 
-  ngOnDestroy(): void {
-    this.controls?.stop();
+  protected async submit(): Promise<void> {
+    if (this.form.invalid || this.busy()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    this.busy.set(true);
+    try {
+      const book = await this.books.returnBook(toIsbn13(this.form.controls.isbn.value)!);
+      this.snackBar.success(T.return.done(book.title, book.borrowedBy));
+      this.form.reset();
+    } catch (err) {
+      this.snackBar.error(this.describe(err));
+    } finally {
+      this.busy.set(false);
+    }
   }
 
-  async ReturnBook() {
-    this.disableBtn = true;
-    this.booksService.GetBooks().pipe(take(1)).subscribe({
-      next: (result: any) => {
-        const books = result;
-        const index = books.findIndex((book: any) => {
-          return book.isbn === this.bookISBN
-        })
-        if (index === -1) {
-          this.snackBarService.showMessage('❌ Book is not found', 'Close');
-          this.disableBtn = false; 
-        } else {
-          const book = books[index];
-          this.booksService.ReturnBook(book.id).then((result: any) => {
-            const message = '✅ "' + book.title + '"' + ' is succesfully returned by ' + book.borrowed_by;
-            this.snackBarService.showMessage(message, 'Close');
-            this.bookISBN = '';
-            this.scannedResult = '';
-            this.disableBtn = false; 
-          }).catch((err: any) => {
-            console.log(err);
-            const message = '❌ Error. Something went wrong when trying to return book';
-            this.snackBarService.showMessage(message, 'Close');
-            this.disableBtn = false; 
-          });
-        }    
-      },
-      error: (err: any) => {
-        console.log(err);
-        const message = '❌ Error. Something went wrong when searching for this book';
-        this.snackBarService.showMessage(message, 'Close');
-        this.disableBtn = false; 
-      }
-    });
+  private describe(err: unknown): string {
+    if (err instanceof LibraryError) {
+      if (err.code === 'not-found') return T.common.notFound;
+      if (err.code === 'not-borrowed') return T.return.notBorrowed;
+    }
+    return T.return.failed;
   }
 }

@@ -1,49 +1,34 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
-import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import { SnackBarService } from '../../services/snack-bar.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { catchError, of } from 'rxjs';
 import { BooksService } from '../../services/books.service';
-import {MatCardModule} from '@angular/material/card';
-import { take } from 'rxjs';
-
-
-interface Book {
-  id: number;
-  isbn: string;
-  title: string;
-  author: string;
-  borrowed_by: string;
-  date: string;
-  group: string;
-  available: boolean;
-}
+import { SnackBarService } from '../../services/snack-bar.service';
+import { Book } from '../../shared/models';
+import { T } from '../../shared/nl';
+import { GoBackButtonComponent } from '../go-back-button/go-back-button.component';
 
 @Component({
   selector: 'app-books-overview',
-  imports: [ GoBackButtonComponent, MatProgressSpinnerModule, MatCardModule ],
+  imports: [GoBackButtonComponent, MatProgressSpinnerModule, MatCardModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './books-overview.component.html',
-  styleUrl: './books-overview.component.css'
 })
 export class BooksOverviewComponent {
-  loading = true;
-  books: Book[] = [];
+  private readonly booksService = inject(BooksService);
+  private readonly snackBar = inject(SnackBarService);
 
-  constructor(private booksService: BooksService, private snackBarService: SnackBarService, private changeDet: ChangeDetectorRef) {
-    this.booksService.GetBooks().pipe(take(1)).subscribe({
-      next: (result: any) => {
-        this.books.length = 0;
-        this.books = result;
-        this.loading = false;
-        this.changeDet.detectChanges();     
-      },
-      error: (err: any) => {
-        console.log(err);
-        const message = '❌ Error. Something went wrong when getting books list';
-        this.snackBarService.showMessage(message, 'Close');
-        this.loading = false;
-      }
-    });
-  }
+  protected readonly t = T;
 
+  /** `undefined` while loading; then a live list, borrowed books first. */
+  protected readonly books = toSignal<Book[] | undefined>(
+    this.booksService.getBooks().pipe(
+      catchError(() => {
+        this.snackBar.error(T.overview.loadFailed);
+        return of([] as Book[]);
+      }),
+    ),
+    { initialValue: undefined },
+  );
 }

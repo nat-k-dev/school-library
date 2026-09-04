@@ -1,18 +1,14 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import {MatButtonModule} from '@angular/material/button';
-import {MatIconModule} from '@angular/material/icon';
-import {RouterModule} from '@angular/router';
-
-
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { T } from './shared/nl';
 
 @Component({
   selector: 'app-root',
-  imports: [MatSlideToggleModule, MatButtonModule, MatIconModule, RouterModule],
+  imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './app.component.css',
 })
 export class AppComponent {
-  title = 'School library';
+  protected readonly title = T.appName;
 }

@@ -1,20 +1,20 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { T } from '../../shared/nl';
 
 @Component({
   selector: 'app-go-back-button',
-  imports: [ MatIconModule, MatButtonModule ],
-  templateUrl: './go-back-button.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './go-back-button.component.css'
+  imports: [MatIconModule, MatButtonModule, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <a mat-fab extended routerLink="/" class="flex items-center justify-center">
+      <mat-icon>arrow_back_ios</mat-icon>
+      <span class="text-xl">{{ label }}</span>
+    </a>
+  `,
 })
 export class GoBackButtonComponent {
-  constructor(private router: Router) {}
-
-  GoBack() {
-    this.router.navigateByUrl('');
-  }
-
+  protected readonly label = T.nav.back;
 }

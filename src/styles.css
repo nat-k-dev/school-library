@@ -1,12 +1,29 @@
 @import "tailwindcss";
+
 html, body { height: 100%; }
-body { 
-    margin: 0; 
-    font-family: Roboto, "Helvetica Neue", sans-serif; 
-    color: #00458f; 
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  color: #00458f;
 }
 
 .mat-mdc-text-field-wrapper {
-    background-color: white !important;
+  background-color: white !important;
 }
 
+/* Shared page layout for the form screens. */
+.page {
+  @apply p-6 md:p-12 lg:max-w-[633px] lg:mx-auto;
+}
+.page-form {
+  @apply flex flex-col gap-4 mt-10 relative;
+}
+.input-field {
+  @apply w-full md:w-[500px];
+}
+.middle-button {
+  @apply text-xl! mx-auto md:w-[500px] md:mx-0 mb-3;
+}
+.busy-overlay {
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+}

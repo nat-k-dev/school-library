@@ -1,31 +1,25 @@
-
-<main class="container-page"> 
-  <h2 class="text-3xl sm:text-4xl lg:text-5xl text-center mb-10 lg:mb-24">Welcome to the library</h2>
-  <div class="container-buttons">
-      <button mat-fab extended class="big-button" (click)="BorrowBook()">
-        <mat-icon>import_contacts</mat-icon>
-        Borrow book
-      </button>
-    
-      <button mat-fab extended class="big-button" (click)="ReturnBook()">
-        <mat-icon>how_to_vote</mat-icon>
-        Return book
-      </button>
-
-      <button mat-fab extended class="big-button" (click)="AddNewBook()">
-        <mat-icon>library_add</mat-icon>
-        Add new book
-      </button>
-
-      <button mat-fab extended class="big-button" (click)="RemoveBook()">
-        <mat-icon>delete_forever</mat-icon>
-        Remove book
-      </button>
-
-      <button mat-fab extended class="big-button lg:grow" (click)="BooksOverview()">
-        <mat-icon>remove_red_eye</mat-icon>
-        All books
-      </button>
-    
-  </div>
+<main class="container-page">
+  <h2 class="text-3xl sm:text-4xl lg:text-5xl text-center mb-10 lg:mb-24">{{ t.welcome }}</h2>
+  <nav class="container-buttons">
+    <a mat-fab extended class="big-button" routerLink="/borrow-book">
+      <mat-icon>import_contacts</mat-icon>
+      {{ t.borrow }}
+    </a>
+    <a mat-fab extended class="big-button" routerLink="/return-book">
+      <mat-icon>assignment_return</mat-icon>
+      {{ t.return }}
+    </a>
+    <a mat-fab extended class="big-button" routerLink="/add-new-book">
+      <mat-icon>library_add</mat-icon>
+      {{ t.add }}
+    </a>
+    <a mat-fab extended class="big-button" routerLink="/remove-book">
+      <mat-icon>delete_forever</mat-icon>
+      {{ t.remove }}
+    </a>
+    <a mat-fab extended class="big-button lg:grow" routerLink="/books-overview">
+      <mat-icon>menu_book</mat-icon>
+      {{ t.overview }}
+    </a>
+  </nav>
 </main>
