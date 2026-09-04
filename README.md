@@ -1,60 +1,129 @@
 # Biebouders
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.7.
+Uitleensysteem voor de schoolbieb van een basisschool. Leesouders en
+leerkrachten scannen het ISBN op de achterkant met de camera van een telefoon
+of tablet; uitlenen en innemen kost twee tikken. Elke school is een eigen
+tenant; van leerlingen worden alleen voornaam en groep opgeslagen.
 
-## Development server
+Angular 22 · Angular Material · Tailwind 4 · Firebase Auth + Firestore · ZXing.
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Development
 
 ```bash
-ng generate component component-name
+npm ci
+cp .env.example .env      # fill in the Firebase web config
+npm run env:local         # writes injected-environment.ts (gitignored)
+npm start                 # http://localhost:4200
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Against the local Firebase emulators (recommended while developing)
+
+Needs Java 17+ and the Firebase CLI (`npm i -g firebase-tools`).
 
 ```bash
-ng generate --help
+# .env: NG_APP_USE_EMULATORS=true, then
+npm run env:local
+npm run emulators         # Auth on :9099, Firestore on :8080, UI on :4000
+npm start
 ```
 
-## Building
+Emulator data is in-memory and gone after a restart. Registration, school
+creation, join codes and the security rules all work exactly as in production.
 
-To build the project run:
+## Checks
 
 ```bash
-ng build
+npm run lint
+npm run test:ci
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The same three steps run in GitHub Actions on every push and pull request.
 
-## Running unit tests
+## Firebase project setup (one-time)
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+1. Create a Firebase project; pick the Firestore location `europe-west4`
+   (Netherlands) when enabling Firestore.
+2. Authentication → Sign-in method: enable **Email/Password** and **Google**.
+3. Deploy the security rules: `firebase deploy --only firestore:rules`
+   (set the project id in `.firebaserc` first).
+4. Copy the web app config into `.env` (and into the Netlify environment).
+5. Optional: a Google Books API key in `NG_APP_GOOGLE_BOOKS_KEY` improves ISBN
+   lookups. Without it only Open Library is queried.
 
-```bash
-ng test
+## Subscriptions
+
+There is no payment flow. A school starts with a 90-day trial of the full
+product; afterwards it stays free while it has at most 150 copies, and becomes
+read-only above that until it pays. The school asks for an invoice from
+Instellingen (a mailto link). After payment, edit the school document by hand
+in the Firestore console:
+
+```
+plan: "paid"
+paidUntil: "2027-09-01"      # yyyy-mm-dd
 ```
 
-## Running end-to-end tests
+The security rules stop the app from changing `plan`, `trialEndsAt` and
+`paidUntil`. The read-only state is enforced in the UI only (see
+`src/app/shared/plan.ts`), which is fine for a paying-customer relationship.
 
-For end-to-end (e2e) testing, run:
+## Books without a barcode
 
-```bash
-ng e2e
+Boek toevoegen → "Geen barcode?" reserves a school-internal EAN-13 code
+(prefix 200, valid checksum) that the camera reads like an ISBN. Boeken →
+Etiketten prints them on 3 × 8 label sheets (Avery L7160).
+
+## Layout
+
+```
+src/app/
+  core/         AuthService, SchoolService (current tenant), auth guard, Firestore helpers
+  services/     StudentsService, LibraryService (titles, copies, loans), IsbnLookupService
+  features/
+    public/     landing, login, register, privacy
+    app/        shell + onboarding, uitlenen, innemen, overzicht, boeken (+ nieuw, etiketten),
+                leerlingen, instellingen (abonnement, export, team, nieuw schooljaar)
+  shared/       models, ISBN helpers, CSV parser, Dutch UI strings (nl.ts),
+                camera ScannerComponent, ConfirmDialogComponent
+firestore.rules  tenant isolation: only members of a school can read or write its data
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+All user-facing text lives in `src/app/shared/nl.ts`.
 
-## Additional Resources
+## Data model
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```
+users/{uid}                 email, schoolIds[]
+joinCodes/{code}            schoolId
+schools/{id}                name, plan, trialEndsAt, paidUntil, copyCount, nextInternalCode,
+                            loanDays, groups[], joinCode, createdBy
+  members/{uid}             role: beheerder | medewerker
+  students/{id}             firstName, lastName, group, active
+  titles/{isbn}             title, author, coverUrl, avi, source
+  copies/{id}               isbn, location, status: available | onLoan | lost | removed
+  loans/{id}                copyId, isbn, title, studentId, studentName, group,
+                            borrowedAt, dueAt, returnedAt (null while out)
+```
 
+Loans are never deleted; they are the reading history.
+
+## Deployment
+
+Netlify builds `main`. The Firebase web config is read from the
+`NG_APP_FIREBASE_*` environment variables by `inject-env.js` at build time.
+
+## TODO
+
+Needs the Firebase Blaze plan (Cloud Functions), so parked until the first
+paying school:
+
+- [ ] Server-side ISBN lookup proxy for the KB (jsru.kb.nl, no CORS) with a
+      shared `isbnCache/{isbn}` collection.
+- [ ] Nightly reset of a public demo school.
+
+No backend needed:
+
+- [ ] Kiosk mode for children on a tablet (group → name → scan).
+- [ ] AVI filter "boeken voor mij" and per-group statistics.
+- [ ] Mollie (iDEAL) once there are more than ~10 schools.

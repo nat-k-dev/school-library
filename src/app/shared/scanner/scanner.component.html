@@ -1,0 +1,23 @@
+<div class="flex flex-col items-center gap-3">
+  @if (!active()) {
+    <button mat-fab extended type="button" class="text-xl!" (click)="start()">
+      <mat-icon>camera_alt</mat-icon>
+      {{ lastIsbn() ? t.scanAgain : t.scan }}
+    </button>
+  } @else {
+    <button mat-stroked-button type="button" (click)="stop()">
+      <mat-icon>close</mat-icon>
+      {{ t.stop }}
+    </button>
+  }
+
+  <video #video [hidden]="!active()" autoplay muted playsinline
+         class="w-[300px] max-w-full aspect-[3/2] rounded-2xl bg-black object-cover"></video>
+
+  @if (lastIsbn(); as isbn) {
+    <p class="m-0 text-sm"><strong>{{ t.scannedIsbn }}</strong> {{ isbn }}</p>
+  }
+  @if (error(); as message) {
+    <p class="m-0 text-sm text-red-700" role="alert">{{ message }}</p>
+  }
+</div>

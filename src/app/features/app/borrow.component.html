@@ -1,0 +1,75 @@
+<div class="screen">
+  <h1 class="screen-title">{{ t.borrow.title }}</h1>
+
+  @if (school.locked()) {
+    <app-locked />
+  } @else if (!isbn()) {
+    <section class="card flex flex-col gap-3">
+      <h2 class="m-0 text-base font-medium text-slate-600">{{ t.borrow.step1 }}</h2>
+      <app-isbn-input (isbn)="onIsbn($event)" />
+    </section>
+  } @else {
+    <section class="card flex flex-col gap-3 relative">
+      @if (title() === undefined) {
+        <div class="flex items-center gap-3 text-slate-600"><mat-spinner diameter="24" /> {{ t.common.loading }}</div>
+      } @else if (title() === null) {
+        <p class="m-0">{{ t.borrow.unknownTitle }}</p>
+        <div class="flex gap-2 flex-wrap">
+          <a mat-flat-button routerLink="/app/boeken/nieuw" [queryParams]="{ isbn: isbn() }">{{ t.borrow.addIt }}</a>
+          <button mat-button type="button" (click)="reset()">{{ t.borrow.other }}</button>
+        </div>
+      } @else {
+        <div class="flex gap-4 items-start">
+          @if (title()?.coverUrl; as cover) {
+            <img [src]="cover" alt="" class="w-16 rounded-md shadow">
+          }
+          <div class="grow">
+            <div class="text-lg font-semibold">{{ title()?.title }}</div>
+            <div class="text-slate-600">{{ title()?.author }}</div>
+            <div class="text-sm mt-1" [class.text-red-700]="available() === 0" [class.text-green-800]="available() > 0">
+              {{ available() > 0 ? t.borrow.availableCopies(available()) : t.borrow.noCopy }}
+            </div>
+          </div>
+          <button mat-button type="button" (click)="reset()">{{ t.borrow.other }}</button>
+        </div>
+      }
+    </section>
+
+    @if (title() && available() > 0) {
+      <section class="card flex flex-col gap-3 relative">
+        <h2 class="m-0 text-base font-medium text-slate-600">{{ t.borrow.step2 }}</h2>
+        <div class="flex gap-2 flex-wrap">
+          <mat-form-field class="w-40">
+            <mat-label>{{ t.fields.group }}</mat-label>
+            <mat-select [ngModel]="group()" (ngModelChange)="group.set($event)">
+              <mat-option value="">{{ t.borrow.allGroups }}</mat-option>
+              @for (g of groups(); track g) {
+                <mat-option [value]="g">{{ g }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="grow">
+            <mat-label>{{ t.fields.search }}</mat-label>
+            <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" autocomplete="off">
+          </mat-form-field>
+        </div>
+
+        @if (studentsLoaded() && candidates().length === 0) {
+          <p class="m-0 text-slate-600">{{ t.borrow.noStudents }}</p>
+        }
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+          @for (s of candidates(); track s.id) {
+            <button type="button" class="student-button" (click)="choose(s)" [disabled]="busy()">
+              <div class="font-medium">{{ name(s) }}</div>
+              <div class="text-xs text-slate-500">{{ t.fields.group }} {{ s.group }}</div>
+            </button>
+          }
+        </div>
+
+        @if (busy()) {
+          <div class="busy-overlay"><mat-spinner /></div>
+        }
+      </section>
+    }
+  }
+</div>

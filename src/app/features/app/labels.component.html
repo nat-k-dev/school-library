@@ -1,0 +1,48 @@
+<div class="screen">
+  <div class="flex items-center gap-2 no-print">
+    <a mat-icon-button routerLink="/app/boeken" [attr.aria-label]="t.nav.back"><mat-icon>arrow_back</mat-icon></a>
+    <h1 class="screen-title">{{ t.labels.title }}</h1>
+  </div>
+
+  @if (!loaded()) {
+    <div class="flex justify-center py-10"><mat-spinner /></div>
+  } @else if (titles().length === 0) {
+    <p class="card m-0 text-slate-600">{{ t.labels.empty }}</p>
+  } @else {
+    <section class="card flex flex-col gap-3 no-print">
+      <p class="m-0 text-sm text-slate-600">{{ t.labels.text }}</p>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button mat-button type="button" (click)="selectAll()">{{ t.labels.selectAll }}</button>
+        <button mat-button type="button" (click)="selectNone()">{{ t.labels.selectNone }}</button>
+        <span class="text-sm text-slate-600">{{ t.labels.selected(chosen().length) }}</span>
+        <span class="grow"></span>
+        <button mat-flat-button type="button" (click)="print()" [disabled]="chosen().length === 0"><mat-icon>print</mat-icon>{{ t.nav.print }}</button>
+      </div>
+      <ul class="m-0 p-0 list-none grid grid-cols-1 md:grid-cols-2 gap-1">
+        @for (title of titles(); track title.isbn) {
+          <li>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" [checked]="selected().has(title.isbn)" (change)="toggle(title.isbn)">
+              <span class="truncate">{{ title.title }}</span>
+              <span class="text-xs text-slate-500 font-mono">{{ title.isbn }}</span>
+            </label>
+          </li>
+        }
+      </ul>
+    </section>
+
+    @if (chosen().length > 0) {
+      <div class="card overflow-x-auto">
+        <div class="sheet">
+          @for (title of chosen(); track title.isbn) {
+            <div class="label">
+              <div class="title">{{ title.title }}</div>
+              <svg #barcode [attr.data-code]="title.isbn"></svg>
+              <div class="school">{{ schoolName() }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

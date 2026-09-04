@@ -1,14 +1,12 @@
 const fs = require('fs');
 
-
-console.log('INJECT_ENV1:', process.env.NG_APP_FIREBASE_AUTH_DOMAIN);
-console.log('INJECT_ENV2:', process.env.NG_APP_FIREBASE_PROJECT_ID);
-
 const envProdPath = 'injected-environment.ts';
 
 const content = `
 export const environment = {
   production: true,
+  useEmulators: ${process.env.NG_APP_USE_EMULATORS === 'true'},
+  googleBooksKey: '${process.env.NG_APP_GOOGLE_BOOKS_KEY ?? ''}',
   firebase: {
     apiKey: '${process.env.NG_APP_FIREBASE_API_KEY}',
     authDomain: '${process.env.NG_APP_FIREBASE_AUTH_DOMAIN}',

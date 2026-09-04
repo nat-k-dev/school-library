@@ -43,4 +43,7 @@ Thumbs.db
 
 .env
 injected-environment.ts
-injected-environment.ts
+
+# Firebase emulator
+.firebase/
+*-debug.log

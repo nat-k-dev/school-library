@@ -1,9 +1,0 @@
-@reference "../../../styles.css";
-
-.middle-button {
-    @apply text-xl mx-auto md:w-[500px] md:mx-0 mb-3;
-}
-
-.input-field {
-    @apply w-full md:w-[500px];
-}

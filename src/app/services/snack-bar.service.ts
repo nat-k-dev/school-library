@@ -1,19 +1,21 @@
-import { inject, Injectable, NgZone } from '@angular/core';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { Injectable, NgZone, inject } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { T } from '../shared/nl';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class SnackBarService {
-  private _snackBar = inject(MatSnackBar);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly zone = inject(NgZone);
 
-  constructor(private zone: NgZone) { }
+  success(message: string): void {
+    this.show(`✅ ${message}`);
+  }
 
-  showMessage(message: string, action: string) {
-    this.zone.run(() => {
-      this._snackBar.open(message, action, {
-        duration: 6000,
-      });
-    });
+  error(message: string): void {
+    this.show(`❌ ${message}`);
+  }
+
+  private show(message: string): void {
+    this.zone.run(() => this.snackBar.open(message, T.common.close, { duration: 6000 }));
   }
 }
