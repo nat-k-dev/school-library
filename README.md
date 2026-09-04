@@ -1,60 +1,42 @@
 # Biebouders
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.7.
+Uitleensysteem voor de schoolbieb: boeken toevoegen, uitlenen en innemen door het
+ISBN op de achterkant te scannen met de camera van een telefoon of tablet.
 
-## Development server
+Angular 22 · Angular Material · Tailwind 4 · Firebase Firestore · ZXing.
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Development
 
 ```bash
-ng generate component component-name
+npm ci
+cp .env.example .env      # fill in the Firebase web config
+npm run env:local         # writes injected-environment.ts (gitignored)
+npm start                 # http://localhost:4200
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Checks
 
 ```bash
-ng generate --help
+npm run lint
+npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
 ```
 
-## Building
+The same three steps run in GitHub Actions on every push and pull request.
 
-To build the project run:
+## Layout
 
-```bash
-ng build
+```
+src/app/
+  components/   one folder per screen
+  services/     BooksService (Firestore), SnackBarService
+  shared/       models, ISBN helpers, Dutch UI strings (nl.ts),
+                camera ScannerComponent, ConfirmDialogComponent
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+All user-facing text lives in `src/app/shared/nl.ts`.
 
-## Running unit tests
+## Deployment
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-
+Netlify builds `main`. The Firebase web config is read from the
+`NG_APP_FIREBASE_*` environment variables by `inject-env.js` at build time.
