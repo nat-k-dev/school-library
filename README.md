@@ -112,3 +112,22 @@ Loans are never deleted; they are the reading history.
 
 Netlify builds `main`. The Firebase web config is read from the
 `NG_APP_FIREBASE_*` environment variables by `inject-env.js` at build time.
+
+## TODO
+
+Needs the Firebase Blaze plan (Cloud Functions), so parked until the first
+paying school:
+
+- [ ] Weekly overdue e-mail to the school (teacher / leescoördinator) per
+      group. Until then: Overzicht → print button gives a paper list.
+- [ ] E-mail to info@biebouders.nl when a school's trial ends in 14 days and
+      when a school becomes read-only, so invoices go out on time.
+- [ ] Server-side ISBN lookup proxy for the KB (jsru.kb.nl, no CORS) with a
+      shared `isbnCache/{isbn}` collection.
+- [ ] Nightly reset of a public demo school.
+
+No backend needed:
+
+- [ ] Kiosk mode for children on a tablet (group → name → scan).
+- [ ] AVI filter "boeken voor mij" and per-group statistics.
+- [ ] Mollie (iDEAL) once there are more than ~10 schools.
