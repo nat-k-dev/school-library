@@ -1,9 +1,11 @@
 # Biebouders
 
-Uitleensysteem voor de schoolbieb: boeken toevoegen, uitlenen en innemen door het
-ISBN op de achterkant te scannen met de camera van een telefoon of tablet.
+Uitleensysteem voor de schoolbieb van een basisschool. Leesouders en
+leerkrachten scannen het ISBN op de achterkant met de camera van een telefoon
+of tablet; uitlenen en innemen kost twee tikken. Elke school is een eigen
+tenant; van leerlingen worden alleen voornaam en groep opgeslagen.
 
-Angular 22 · Angular Material · Tailwind 4 · Firebase Firestore · ZXing.
+Angular 22 · Angular Material · Tailwind 4 · Firebase Auth + Firestore · ZXing.
 
 ## Development
 
@@ -14,27 +16,72 @@ npm run env:local         # writes injected-environment.ts (gitignored)
 npm start                 # http://localhost:4200
 ```
 
+### Against the local Firebase emulators (recommended while developing)
+
+Needs Java 17+ and the Firebase CLI (`npm i -g firebase-tools`).
+
+```bash
+# .env: NG_APP_USE_EMULATORS=true, then
+npm run env:local
+npm run emulators         # Auth on :9099, Firestore on :8080, UI on :4000
+npm start
+```
+
+Emulator data is in-memory and gone after a restart. Registration, school
+creation, join codes and the security rules all work exactly as in production.
+
 ## Checks
 
 ```bash
 npm run lint
-npm test -- --watch=false --browsers=ChromeHeadless
+npm run test:ci
 npm run build
 ```
 
 The same three steps run in GitHub Actions on every push and pull request.
 
+## Firebase project setup (one-time)
+
+1. Create a Firebase project; pick the Firestore location `europe-west4`
+   (Netherlands) when enabling Firestore.
+2. Authentication → Sign-in method: enable **Email/Password** and **Google**.
+3. Deploy the security rules: `firebase deploy --only firestore:rules`
+   (set the project id in `.firebaserc` first).
+4. Copy the web app config into `.env` (and into the Netlify environment).
+5. Optional: a Google Books API key in `NG_APP_GOOGLE_BOOKS_KEY` improves ISBN
+   lookups. Without it only Open Library is queried.
+
 ## Layout
 
 ```
 src/app/
-  components/   one folder per screen
-  services/     BooksService (Firestore), SnackBarService
-  shared/       models, ISBN helpers, Dutch UI strings (nl.ts),
+  core/         AuthService, SchoolService (current tenant), auth guard, Firestore helpers
+  services/     StudentsService, LibraryService (titles, copies, loans), IsbnLookupService
+  features/
+    public/     landing, login, register, privacy
+    app/        shell + onboarding, uitlenen, innemen, overzicht, boeken, leerlingen, instellingen
+  shared/       models, ISBN helpers, CSV parser, Dutch UI strings (nl.ts),
                 camera ScannerComponent, ConfirmDialogComponent
+firestore.rules  tenant isolation: only members of a school can read or write its data
 ```
 
 All user-facing text lives in `src/app/shared/nl.ts`.
+
+## Data model
+
+```
+users/{uid}                 email, schoolIds[]
+joinCodes/{code}            schoolId
+schools/{id}                name, plan, loanDays, groups[], joinCode, createdBy
+  members/{uid}             role: beheerder | medewerker
+  students/{id}             firstName, lastName, group, active
+  titles/{isbn}             title, author, coverUrl, avi, source
+  copies/{id}               isbn, location, status: available | onLoan | lost | removed
+  loans/{id}                copyId, isbn, title, studentId, studentName, group,
+                            borrowedAt, dueAt, returnedAt (null while out)
+```
+
+Loans are never deleted; they are the reading history.
 
 ## Deployment
 

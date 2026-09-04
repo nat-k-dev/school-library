@@ -1,0 +1,47 @@
+<div class="screen">
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+    <h1 class="screen-title">{{ t.books.title }}</h1>
+    <a mat-flat-button routerLink="/app/boeken/nieuw"><mat-icon>add</mat-icon>{{ t.books.add }}</a>
+  </div>
+
+  <mat-form-field class="input-field" subscriptSizing="dynamic">
+    <mat-label>{{ t.fields.search }}</mat-label>
+    <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" autocomplete="off">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (!loaded()) {
+    <div class="flex justify-center py-10"><mat-spinner /></div>
+  } @else if (rows().length === 0) {
+    <p class="card m-0 text-slate-600">{{ t.books.empty }}</p>
+  } @else if (visible().length === 0) {
+    <p class="card m-0 text-slate-600">{{ t.books.noResults }}</p>
+  } @else {
+    <div class="flex flex-col gap-2">
+      @for (row of visible(); track row.title.isbn) {
+        <div class="card py-3! flex items-center gap-3">
+          @if (row.title.coverUrl; as cover) {
+            <img [src]="cover" alt="" class="w-10 rounded shadow-sm shrink-0">
+          } @else {
+            <div class="w-10 h-14 rounded bg-slate-100 shrink-0"></div>
+          }
+          <div class="grow min-w-0">
+            <div class="font-medium truncate">{{ row.title.title }}</div>
+            <div class="text-sm text-slate-600 truncate">{{ row.title.author }}@if (row.title.avi) { · AVI {{ row.title.avi }}}</div>
+            <div class="text-xs" [class.text-slate-500]="row.available > 0" [class.text-amber-700]="row.available === 0">
+              {{ t.books.copies(row.total, row.available) }}
+            </div>
+          </div>
+          <button mat-icon-button type="button" [matMenuTriggerFor]="menu" [disabled]="busy() === row.title.isbn" aria-label="Meer">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item type="button" (click)="addCopy(row)"><mat-icon>add</mat-icon>{{ t.books.addCopy }}</button>
+            <button mat-menu-item type="button" (click)="markCopy(row, 'lost')" [disabled]="row.available === 0"><mat-icon>help_outline</mat-icon>{{ t.books.markLost }}</button>
+            <button mat-menu-item type="button" (click)="markCopy(row, 'removed')" [disabled]="row.total === 0"><mat-icon>delete_outline</mat-icon>{{ t.books.markRemoved }}</button>
+          </mat-menu>
+        </div>
+      }
+    </div>
+  }
+</div>

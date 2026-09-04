@@ -1,0 +1,56 @@
+<div class="screen">
+  <h1 class="screen-title">{{ t.settings.title }}</h1>
+
+  <form class="card flex flex-col gap-2" [formGroup]="form" (ngSubmit)="save()">
+    <div class="flex items-baseline justify-between gap-2">
+      <h2 class="m-0 text-lg font-semibold">{{ t.settings.school }}</h2>
+      <span class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-900">{{ plan() }}</span>
+    </div>
+    <mat-form-field class="input-field">
+      <mat-label>{{ t.settings.schoolName }}</mat-label>
+      <input matInput formControlName="name">
+      <mat-error>{{ t.fields.required }}</mat-error>
+    </mat-form-field>
+    <mat-form-field class="w-48">
+      <mat-label>{{ t.settings.loanDays }}</mat-label>
+      <input matInput type="number" min="1" formControlName="loanDays" inputmode="numeric">
+      <mat-error>{{ t.fields.min1 }}</mat-error>
+    </mat-form-field>
+    <mat-form-field class="input-field">
+      <mat-label>{{ t.settings.groups }}</mat-label>
+      <input matInput formControlName="groups">
+      <mat-hint>{{ t.settings.groupsHint }}</mat-hint>
+      <mat-error>{{ t.fields.required }}</mat-error>
+    </mat-form-field>
+    <button mat-flat-button type="submit" class="self-start mt-3" [disabled]="busy() || form.pristine">{{ t.settings.save }}</button>
+  </form>
+
+  <section class="card flex flex-col gap-3">
+    <h2 class="m-0 text-lg font-semibold">{{ t.settings.team }}</h2>
+    <ul class="m-0 p-0 list-none flex flex-col gap-1">
+      @for (m of members(); track m.uid) {
+        <li class="flex items-center gap-2">
+          <mat-icon class="text-slate-400">person</mat-icon>
+          <span class="grow truncate">{{ m.displayName || m.email }}</span>
+          <span class="text-xs text-slate-500">{{ t.settings.roles[m.role] }}</span>
+        </li>
+      }
+    </ul>
+    <div class="mt-2">
+      <div class="text-sm font-medium">{{ t.settings.joinCode }}</div>
+      <p class="m-0 text-sm text-slate-600">{{ t.settings.joinCodeHelp }}</p>
+      <div class="mt-2 flex items-center gap-2">
+        <code class="text-2xl tracking-[0.3em] font-mono bg-slate-100 px-3 py-1 rounded-lg">{{ school.school()?.joinCode }}</code>
+        <button mat-stroked-button type="button" (click)="copyCode()"><mat-icon>content_copy</mat-icon>{{ t.settings.copy }}</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card flex flex-col gap-2">
+    <h2 class="m-0 text-lg font-semibold">{{ t.settings.newYear }}</h2>
+    <p class="m-0 text-sm text-slate-600">{{ t.settings.newYearText }}</p>
+    <button mat-stroked-button type="button" class="self-start" (click)="newYear()" [disabled]="busy()">{{ t.settings.newYearButton }}</button>
+  </section>
+
+  <button mat-button type="button" class="self-start" (click)="logout()"><mat-icon>logout</mat-icon>{{ t.settings.logout }}</button>
+</div>

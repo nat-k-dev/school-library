@@ -1,20 +1,72 @@
 import { Routes } from '@angular/router';
-import { AddNewBookComponent } from './components/add-new-book/add-new-book.component';
-import { BooksOverviewComponent } from './components/books-overview/books-overview.component';
-import { BorrowBookComponent } from './components/borrow-book/borrow-book.component';
-import { HomepageComponent } from './components/homepage/homepage.component';
-import { RemoveBookComponent } from './components/remove-book/remove-book.component';
-import { ReturnBookComponent } from './components/return-book/return-book.component';
+import { authGuard } from './core/auth.guard';
 import { T } from './shared/nl';
 
 const page = (name: string) => `${T.appName} | ${name}`;
 
 export const routes: Routes = [
-  { path: '', component: HomepageComponent, title: T.appName },
-  { path: 'add-new-book', component: AddNewBookComponent, title: page(T.add.title) },
-  { path: 'remove-book', component: RemoveBookComponent, title: page(T.remove.title) },
-  { path: 'borrow-book', component: BorrowBookComponent, title: page(T.borrow.title) },
-  { path: 'return-book', component: ReturnBookComponent, title: page(T.return.title) },
-  { path: 'books-overview', component: BooksOverviewComponent, title: page(T.overview.title) },
+  {
+    path: '',
+    title: T.appName,
+    loadComponent: () => import('./features/public/landing.component').then((m) => m.LandingComponent),
+  },
+  {
+    path: 'privacy',
+    title: page(T.privacy.title),
+    loadComponent: () => import('./features/public/privacy.component').then((m) => m.PrivacyComponent),
+  },
+  {
+    path: 'login',
+    title: page(T.auth.loginTitle),
+    loadComponent: () => import('./features/public/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: 'registreren',
+    title: page(T.auth.registerTitle),
+    loadComponent: () => import('./features/public/register.component').then((m) => m.RegisterComponent),
+  },
+  {
+    path: 'app',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/app/shell.component').then((m) => m.ShellComponent),
+    children: [
+      { path: '', redirectTo: 'uitlenen', pathMatch: 'full' },
+      {
+        path: 'uitlenen',
+        title: page(T.nav.borrow),
+        loadComponent: () => import('./features/app/borrow.component').then((m) => m.BorrowComponent),
+      },
+      {
+        path: 'innemen',
+        title: page(T.nav.return),
+        loadComponent: () => import('./features/app/return.component').then((m) => m.ReturnComponent),
+      },
+      {
+        path: 'overzicht',
+        title: page(T.nav.loans),
+        loadComponent: () => import('./features/app/loans.component').then((m) => m.LoansComponent),
+      },
+      {
+        path: 'boeken',
+        title: page(T.nav.books),
+        loadComponent: () => import('./features/app/books.component').then((m) => m.BooksComponent),
+      },
+      {
+        path: 'boeken/nieuw',
+        title: page(T.addBook.title),
+        loadComponent: () => import('./features/app/add-book.component').then((m) => m.AddBookComponent),
+      },
+      {
+        path: 'leerlingen',
+        title: page(T.nav.students),
+        loadComponent: () => import('./features/app/students.component').then((m) => m.StudentsComponent),
+      },
+      {
+        path: 'instellingen',
+        title: page(T.nav.settings),
+        loadComponent: () => import('./features/app/settings.component').then((m) => m.SettingsComponent),
+      },
+    ],
+  },
   { path: '**', redirectTo: '' },
 ];

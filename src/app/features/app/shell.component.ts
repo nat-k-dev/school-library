@@ -1,0 +1,56 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { SchoolService } from '../../core/school.service';
+import { T } from '../../shared/nl';
+import { OnboardingComponent } from './onboarding.component';
+
+/** Signed-in frame: school header, tab navigation, and onboarding when the user has no school yet. */
+@Component({
+  selector: 'app-shell',
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, MatButtonModule, MatProgressSpinnerModule, OnboardingComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @if (!school.ready()) {
+      <div class="min-h-screen flex items-center justify-center"><mat-spinner /></div>
+    } @else if (school.school() === null) {
+      <app-onboarding />
+    } @else {
+      <div class="min-h-screen flex flex-col">
+        <header class="bg-white shadow-md sticky top-0 z-20">
+          <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
+            <img src="/assets/images/logo4.png" alt="" class="h-9 w-9 rounded-xl">
+            <span class="font-semibold truncate">{{ school.school()?.name }}</span>
+            <span class="grow"></span>
+            <a mat-icon-button routerLink="/app/instellingen" [attr.aria-label]="t.nav.settings"><mat-icon>settings</mat-icon></a>
+          </div>
+          <nav class="max-w-5xl mx-auto px-2 flex overflow-x-auto">
+            @for (item of items; track item.path) {
+              <a [routerLink]="item.path" routerLinkActive="active" class="tab-link">
+                <mat-icon class="text-[20px]! w-5! h-5!">{{ item.icon }}</mat-icon>{{ item.label }}
+              </a>
+            }
+          </nav>
+        </header>
+        <main class="grow background-stripes">
+          <div class="max-w-3xl mx-auto p-4 md:p-8">
+            <router-outlet />
+          </div>
+        </main>
+      </div>
+    }
+  `,
+})
+export class ShellComponent {
+  protected readonly school = inject(SchoolService);
+  protected readonly t = T;
+  protected readonly items = [
+    { path: '/app/uitlenen', icon: 'import_contacts', label: T.nav.borrow },
+    { path: '/app/innemen', icon: 'assignment_return', label: T.nav.return },
+    { path: '/app/overzicht', icon: 'list_alt', label: T.nav.loans },
+    { path: '/app/boeken', icon: 'menu_book', label: T.nav.books },
+    { path: '/app/leerlingen', icon: 'groups', label: T.nav.students },
+  ];
+}

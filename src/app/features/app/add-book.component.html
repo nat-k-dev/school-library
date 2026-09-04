@@ -1,0 +1,66 @@
+<div class="screen">
+  <div class="flex items-center gap-2">
+    <a mat-icon-button routerLink="/app/boeken" [attr.aria-label]="t.nav.back"><mat-icon>arrow_back</mat-icon></a>
+    <h1 class="screen-title">{{ t.addBook.title }}</h1>
+  </div>
+
+  @if (!current()) {
+    <section class="card flex flex-col gap-3">
+      <h2 class="m-0 text-base font-medium text-slate-600">{{ t.addBook.step1 }}</h2>
+      <app-isbn-input [buttonLabel]="t.borrow.lookup" (isbn)="onIsbn($event)" />
+    </section>
+  } @else {
+    <form class="card flex flex-col gap-3 relative" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-sm text-slate-500">{{ t.fields.isbn }} {{ current() }}</span>
+        <button mat-button type="button" (click)="reset()">{{ t.addBook.another }}</button>
+      </div>
+
+      @if (lookingUp()) {
+        <div class="flex items-center gap-3 text-slate-600"><mat-spinner diameter="24" /> {{ t.addBook.lookingUp }}</div>
+      } @else {
+        @if (notice(); as message) {
+          <p class="m-0 text-sm" [class.text-amber-700]="existingCopies() > 0" [class.text-slate-600]="existingCopies() === 0">{{ message }}</p>
+        }
+        <div class="flex gap-4">
+          @if (coverUrl(); as cover) {
+            <img [src]="cover" alt="" class="w-20 self-start rounded-md shadow">
+          }
+          <div class="grow flex flex-col">
+            <mat-form-field class="input-field">
+              <mat-label>{{ t.fields.title }}</mat-label>
+              <input matInput formControlName="title">
+              <mat-error>{{ t.fields.required }}</mat-error>
+            </mat-form-field>
+            <mat-form-field class="input-field">
+              <mat-label>{{ t.fields.author }}</mat-label>
+              <input matInput formControlName="author">
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <mat-form-field>
+            <mat-label>{{ t.fields.avi }}</mat-label>
+            <input matInput formControlName="avi" placeholder="M4" autocomplete="off">
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>{{ t.fields.copies }}</mat-label>
+            <input matInput type="number" min="1" formControlName="copies" inputmode="numeric">
+            <mat-error>{{ t.fields.min1 }}</mat-error>
+          </mat-form-field>
+          <mat-form-field class="col-span-2 md:col-span-1">
+            <mat-label>{{ t.fields.location }}</mat-label>
+            <input matInput formControlName="location" autocomplete="off">
+          </mat-form-field>
+        </div>
+        <button mat-flat-button type="submit" class="primary-button self-start" [disabled]="busy()">
+          <mat-icon>library_add</mat-icon>{{ t.addBook.submit }}
+        </button>
+      }
+
+      @if (busy()) {
+        <div class="busy-overlay"><mat-spinner /></div>
+      }
+    </form>
+  }
+</div>
