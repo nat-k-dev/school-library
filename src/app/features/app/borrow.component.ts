@@ -14,11 +14,13 @@ import { StudentsService } from '../../services/students.service';
 import { Student, Title, studentDisplayName } from '../../shared/models';
 import { T, formatDate } from '../../shared/nl';
 import { IsbnInputComponent } from './isbn-input.component';
+import { LockedComponent } from './locked.component';
 
 @Component({
   selector: 'app-borrow',
   imports: [
     IsbnInputComponent,
+    LockedComponent,
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -34,7 +36,7 @@ import { IsbnInputComponent } from './isbn-input.component';
 export class BorrowComponent {
   private readonly library = inject(LibraryService);
   private readonly students = inject(StudentsService);
-  private readonly school = inject(SchoolService);
+  protected readonly school = inject(SchoolService);
   private readonly snackBar = inject(SnackBarService);
 
   protected readonly t = T;

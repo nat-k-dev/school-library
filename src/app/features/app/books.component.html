@@ -1,14 +1,30 @@
 <div class="screen">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <h1 class="screen-title">{{ t.books.title }}</h1>
-    <a mat-flat-button routerLink="/app/boeken/nieuw"><mat-icon>add</mat-icon>{{ t.books.add }}</a>
+    <div class="flex gap-2">
+      <a mat-stroked-button routerLink="/app/boeken/etiketten"><mat-icon>label</mat-icon>{{ t.books.labels }}</a>
+      <a mat-flat-button routerLink="/app/boeken/nieuw"><mat-icon>add</mat-icon>{{ t.books.add }}</a>
+    </div>
   </div>
 
-  <mat-form-field class="input-field" subscriptSizing="dynamic">
-    <mat-label>{{ t.fields.search }}</mat-label>
-    <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" autocomplete="off">
-    <mat-icon matSuffix>search</mat-icon>
-  </mat-form-field>
+  <div class="flex gap-2 flex-wrap">
+    <mat-form-field class="grow" subscriptSizing="dynamic">
+      <mat-label>{{ t.fields.search }}</mat-label>
+      <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" autocomplete="off">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    @if (locations().length > 0) {
+      <mat-form-field class="w-44" subscriptSizing="dynamic">
+        <mat-label>{{ t.fields.location }}</mat-label>
+        <mat-select [ngModel]="location()" (ngModelChange)="location.set($event)">
+          <mat-option value="">{{ t.fields.allLocations }}</mat-option>
+          @for (l of locations(); track l) {
+            <mat-option [value]="l">{{ l }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+  </div>
 
   @if (!loaded()) {
     <div class="flex justify-center py-10"><mat-spinner /></div>

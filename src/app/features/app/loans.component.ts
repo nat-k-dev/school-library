@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { SchoolService } from '../../core/school.service';
@@ -12,7 +13,7 @@ import { T, formatDate } from '../../shared/nl';
 
 @Component({
   selector: 'app-loans',
-  imports: [FormsModule, MatFormFieldModule, MatSelectModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [FormsModule, MatFormFieldModule, MatSelectModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="screen">
@@ -25,6 +26,8 @@ import { T, formatDate } from '../../shared/nl';
             </p>
           }
         </div>
+        <div class="flex items-center gap-2 no-print">
+        <button mat-icon-button type="button" (click)="print()" [attr.aria-label]="t.nav.print" [disabled]="visible().length === 0"><mat-icon>print</mat-icon></button>
         <mat-form-field class="w-44" subscriptSizing="dynamic">
           <mat-label>{{ t.fields.group }}</mat-label>
           <mat-select [ngModel]="group()" (ngModelChange)="group.set($event)">
@@ -34,6 +37,7 @@ import { T, formatDate } from '../../shared/nl';
             }
           </mat-select>
         </mat-form-field>
+        </div>
       </div>
 
       @if (!loans()) {
@@ -51,7 +55,7 @@ import { T, formatDate } from '../../shared/nl';
                   {{ isOverdue(loan) ? t.loans.overdue + ' · ' : '' }}{{ t.loans.dueOn }} {{ date(loan.dueAt) }}
                 </div>
               </div>
-              <button mat-stroked-button type="button" (click)="returnLoan(loan)" [disabled]="busy() === loan.id">
+              <button mat-stroked-button type="button" class="no-print" (click)="returnLoan(loan)" [disabled]="busy() === loan.id">
                 {{ t.loans.returnButton }}
               </button>
             </div>
@@ -81,6 +85,10 @@ export class LoansComponent {
       .sort((a, b) => a.dueAt.localeCompare(b.dueAt) || a.studentName.localeCompare(b.studentName, 'nl'));
   });
   protected readonly overdueCount = computed(() => (this.loans() ?? []).filter((l) => this.isOverdue(l)).length);
+
+  protected print(): void {
+    window.print();
+  }
 
   protected isOverdue(loan: Loan): boolean {
     return loan.dueAt < this.today;

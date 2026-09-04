@@ -6,17 +6,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
+import { SchoolService } from '../../core/school.service';
 import { IsbnLookupService } from '../../services/isbn-lookup.service';
 import { LibraryService } from '../../services/library.service';
 import { SnackBarService } from '../../services/snack-bar.service';
-import { toIsbn13 } from '../../shared/isbn';
+import { isInternalCode, toIsbn13 } from '../../shared/isbn';
 import { TitleDraft } from '../../shared/models';
 import { T } from '../../shared/nl';
 import { IsbnInputComponent } from './isbn-input.component';
+import { LockedComponent } from './locked.component';
 
 @Component({
   selector: 'app-add-book',
-  imports: [IsbnInputComponent, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, RouterLink],
+  imports: [IsbnInputComponent, LockedComponent, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './add-book.component.html',
 })
@@ -25,6 +27,7 @@ export class AddBookComponent {
   private readonly lookup = inject(IsbnLookupService);
   private readonly snackBar = inject(SnackBarService);
   private readonly fb = inject(NonNullableFormBuilder);
+  protected readonly school = inject(SchoolService);
 
   /** Query parameter `?isbn=`: pre-filled by the borrow screen when it meets an unknown book. */
   readonly isbn = input<string | undefined>(undefined);
@@ -76,7 +79,7 @@ export class AddBookComponent {
         this.form.patchValue({ title: found.title, author: found.author });
         this.notice.set(T.addBook.found);
       } else {
-        this.notice.set(T.addBook.notFound);
+        this.notice.set(isInternalCode(isbn) ? T.addBook.internalCode : T.addBook.notFound);
       }
     } catch {
       this.snackBar.error(T.common.genericError);
@@ -109,6 +112,19 @@ export class AddBookComponent {
       this.reset();
     } catch {
       this.snackBar.error(T.addBook.failed);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** For a book without a barcode: reserve a school-internal code and continue as if it was scanned. */
+  protected async newInternalCode(): Promise<void> {
+    this.busy.set(true);
+    try {
+      const code = await this.school.allocateInternalCode();
+      await this.onIsbn(code);
+    } catch {
+      this.snackBar.error(T.common.genericError);
     } finally {
       this.busy.set(false);
     }

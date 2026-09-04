@@ -7,6 +7,11 @@
  * the Firestore console and need no conversion in the UI.
  */
 
+/**
+ * Set by hand in the Firestore console; the app cannot change it.
+ * 'trial' → full product until trialEndsAt; 'paid' → until paidUntil;
+ * 'free' → the klassenbieb tier (see shared/plan.ts for the limits).
+ */
 export type Plan = 'free' | 'trial' | 'paid';
 
 /** `schools/{id}` */
@@ -16,6 +21,12 @@ export interface School {
   plan: Plan;
   /** yyyy-mm-dd, only meaningful while plan is 'trial'. */
   trialEndsAt: string | null;
+  /** yyyy-mm-dd, only meaningful while plan is 'paid'. */
+  paidUntil: string | null;
+  /** Copies not removed; kept in sync by LibraryService so the free tier can be checked cheaply. */
+  copyCount: number;
+  /** Next sequence number for a school-internal barcode. */
+  nextInternalCode: number;
   /** Default loan period in days. */
   loanDays: number;
   /** Group names in display order, e.g. ["1/2A", "3", "4", ...]. */

@@ -57,6 +57,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/app/add-book.component').then((m) => m.AddBookComponent),
       },
       {
+        path: 'boeken/etiketten',
+        title: page(T.labels.title),
+        loadComponent: () => import('./features/app/labels.component').then((m) => m.LabelsComponent),
+      },
+      {
         path: 'leerlingen',
         title: page(T.nav.students),
         loadComponent: () => import('./features/app/students.component').then((m) => m.StudentsComponent),

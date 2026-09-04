@@ -1,7 +1,9 @@
 <div class="screen">
   <h1 class="screen-title">{{ t.borrow.title }}</h1>
 
-  @if (!isbn()) {
+  @if (school.locked()) {
+    <app-locked />
+  } @else if (!isbn()) {
     <section class="card flex flex-col gap-3">
       <h2 class="m-0 text-base font-medium text-slate-600">{{ t.borrow.step1 }}</h2>
       <app-isbn-input (isbn)="onIsbn($event)" />

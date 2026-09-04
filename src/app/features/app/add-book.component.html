@@ -4,10 +4,15 @@
     <h1 class="screen-title">{{ t.addBook.title }}</h1>
   </div>
 
-  @if (!current()) {
+  @if (school.locked()) {
+    <app-locked />
+  } @else if (!current()) {
     <section class="card flex flex-col gap-3">
       <h2 class="m-0 text-base font-medium text-slate-600">{{ t.addBook.step1 }}</h2>
       <app-isbn-input [buttonLabel]="t.borrow.lookup" (isbn)="onIsbn($event)" />
+      <button mat-button type="button" class="self-center" (click)="newInternalCode()" [disabled]="busy()">
+        <mat-icon>qr_code_2</mat-icon>{{ t.addBook.noBarcode }}
+      </button>
     </section>
   } @else {
     <form class="card flex flex-col gap-3 relative" [formGroup]="form" (ngSubmit)="submit()">

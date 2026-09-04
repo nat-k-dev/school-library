@@ -6,11 +6,14 @@ import {
   collection,
   doc,
   getDoc,
+  runTransaction,
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
 import { Subscription } from 'rxjs';
-import { JoinCode, Member, School, UserProfile, now } from '../shared/models';
+import { makeInternalCode } from '../shared/isbn';
+import { JoinCode, Member, School, UserProfile, addDays, now, today } from '../shared/models';
+import { PlanInfo, TRIAL_DAYS, planInfo } from '../shared/plan';
 import { AuthService } from './auth.service';
 import { documentChanges } from './firestore.util';
 
@@ -40,6 +43,13 @@ export class SchoolService {
   readonly schoolId = computed(() => this.school()?.id ?? null);
   readonly isAdmin = computed(() => this.member()?.role === 'beheerder');
   readonly ready = computed(() => this.school() !== undefined);
+  /** Subscription status of the current school; `null` while no school is loaded. */
+  readonly plan = computed<PlanInfo | null>(() => {
+    const school = this.school();
+    return school ? planInfo(school, today()) : null;
+  });
+  /** True when the school may not add books or lend (trial over and above the free tier). */
+  readonly locked = computed(() => this.plan()?.locked ?? false);
 
   private subscriptions: Subscription[] = [];
 
@@ -59,8 +69,11 @@ export class SchoolService {
     const joinCode = generateJoinCode();
     const school: Omit<School, 'id'> = {
       name: name.trim(),
-      plan: 'free',
-      trialEndsAt: null,
+      plan: 'trial',
+      trialEndsAt: addDays(today(), TRIAL_DAYS),
+      paidUntil: null,
+      copyCount: 0,
+      nextInternalCode: 1,
       loanDays: DEFAULT_LOAN_DAYS,
       groups: DEFAULT_GROUPS,
       joinCode,
@@ -116,6 +129,17 @@ export class SchoolService {
   updateSchool(patch: Partial<Pick<School, 'name' | 'loanDays' | 'groups'>>): Promise<void> {
     const id = this.requireSchoolId();
     return updateDoc(doc(this.db, 'schools', id), patch);
+  }
+
+  /** Reserves the next school-internal barcode for a book without an ISBN. */
+  async allocateInternalCode(): Promise<string> {
+    const ref = doc(this.db, 'schools', this.requireSchoolId());
+    return runTransaction(this.db, async (tx) => {
+      const snap = await tx.get(ref);
+      const next = (snap.data()?.['nextInternalCode'] as number | undefined) ?? 1;
+      tx.update(ref, { nextInternalCode: next + 1 });
+      return makeInternalCode(next);
+    });
   }
 
   /** Path helper for the data services. */

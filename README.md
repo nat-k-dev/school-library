@@ -51,6 +51,29 @@ The same three steps run in GitHub Actions on every push and pull request.
 5. Optional: a Google Books API key in `NG_APP_GOOGLE_BOOKS_KEY` improves ISBN
    lookups. Without it only Open Library is queried.
 
+## Subscriptions
+
+There is no payment flow. A school starts with a 90-day trial of the full
+product; afterwards it stays free while it has at most 150 copies, and becomes
+read-only above that until it pays. The school asks for an invoice from
+Instellingen (a mailto link). After payment, edit the school document by hand
+in the Firestore console:
+
+```
+plan: "paid"
+paidUntil: "2027-09-01"      # yyyy-mm-dd
+```
+
+The security rules stop the app from changing `plan`, `trialEndsAt` and
+`paidUntil`. The read-only state is enforced in the UI only (see
+`src/app/shared/plan.ts`), which is fine for a paying-customer relationship.
+
+## Books without a barcode
+
+Boek toevoegen → "Geen barcode?" reserves a school-internal EAN-13 code
+(prefix 200, valid checksum) that the camera reads like an ISBN. Boeken →
+Etiketten prints them on 3 × 8 label sheets (Avery L7160).
+
 ## Layout
 
 ```
@@ -59,7 +82,8 @@ src/app/
   services/     StudentsService, LibraryService (titles, copies, loans), IsbnLookupService
   features/
     public/     landing, login, register, privacy
-    app/        shell + onboarding, uitlenen, innemen, overzicht, boeken, leerlingen, instellingen
+    app/        shell + onboarding, uitlenen, innemen, overzicht, boeken (+ nieuw, etiketten),
+                leerlingen, instellingen (abonnement, export, team, nieuw schooljaar)
   shared/       models, ISBN helpers, CSV parser, Dutch UI strings (nl.ts),
                 camera ScannerComponent, ConfirmDialogComponent
 firestore.rules  tenant isolation: only members of a school can read or write its data
@@ -72,7 +96,8 @@ All user-facing text lives in `src/app/shared/nl.ts`.
 ```
 users/{uid}                 email, schoolIds[]
 joinCodes/{code}            schoolId
-schools/{id}                name, plan, loanDays, groups[], joinCode, createdBy
+schools/{id}                name, plan, trialEndsAt, paidUntil, copyCount, nextInternalCode,
+                            loanDays, groups[], joinCode, createdBy
   members/{uid}             role: beheerder | medewerker
   students/{id}             firstName, lastName, group, active
   titles/{isbn}             title, author, coverUrl, avi, source

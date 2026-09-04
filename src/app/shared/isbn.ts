@@ -42,3 +42,22 @@ export function toIsbn13(raw: string): string | null {
   if (isValidIsbn10(isbn)) return isbn10To13(isbn);
   return null;
 }
+
+/**
+ * Books without a barcode (old, home-made, donated without cover) get a
+ * school-internal EAN-13 in the GS1 "restricted circulation" range starting
+ * with 20. The camera scanner reads it like any ISBN, and the checksum keeps
+ * typos out.
+ */
+const INTERNAL_PREFIX = '200';
+
+export function makeInternalCode(sequence: number): string {
+  if (!Number.isInteger(sequence) || sequence < 1 || sequence > 999_999_999) throw new Error('sequence out of range');
+  const core = INTERNAL_PREFIX + String(sequence).padStart(9, '0');
+  const sum = core.split('').map(Number).reduce((acc, d, i) => acc + d * (i % 2 === 0 ? 1 : 3), 0);
+  return core + ((10 - (sum % 10)) % 10);
+}
+
+export function isInternalCode(code: string): boolean {
+  return code.startsWith(INTERNAL_PREFIX) && isValidIsbn13(code);
+}

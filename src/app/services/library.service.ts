@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   limit,
   query,
   runTransaction,
@@ -101,9 +102,10 @@ export class LibraryService {
     }
     const copiesRef = this.school.schoolCollection('copies');
     for (let i = 0; i < copyCount; i++) {
-      const copy: Omit<Copy, 'id'> = { isbn, location, status: 'available', createdAt: now() };
+      const copy: Omit<Copy, 'id'> = { isbn, location: location.trim(), status: 'available', createdAt: now() };
       batch.set(doc(copiesRef), copy);
     }
+    batch.update(doc(this.db, 'schools', this.school.requireSchoolId()), { copyCount: increment(copyCount) });
     await batch.commit();
   }
 
@@ -111,8 +113,21 @@ export class LibraryService {
     return updateDoc(this.school.schoolDoc('titles', isbn), patch);
   }
 
-  setCopyStatus(copyId: string, status: Copy['status']): Promise<void> {
-    return updateDoc(this.school.schoolDoc('copies', copyId), { status });
+  /** Changes a copy's status and keeps the school's copy count in step (removed copies do not count). */
+  async setCopyStatus(copy: Copy, status: Copy['status']): Promise<void> {
+    const batch = writeBatch(this.db);
+    batch.update(this.school.schoolDoc('copies', copy.id), { status });
+    const delta = (status === 'removed' ? 0 : 1) - (copy.status === 'removed' ? 0 : 1);
+    if (delta !== 0) {
+      batch.update(doc(this.db, 'schools', this.school.requireSchoolId()), { copyCount: increment(delta) });
+    }
+    await batch.commit();
+  }
+
+  /** Every loan ever made, newest first. One-off read for exports. */
+  async allLoans(): Promise<Loan[]> {
+    const snap = await getDocs(this.school.schoolCollection('loans'));
+    return snap.docs.map((d) => withId<Loan>(d)).sort((a, b) => b.borrowedAt.localeCompare(a.borrowedAt));
   }
 
   /**

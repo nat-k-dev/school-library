@@ -25,6 +25,10 @@ service cloud.firestore {
       return getAfter(/databases/$(db)/documents/schools/$(sid)).data;
     }
 
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
     // One profile per user: which schools they belong to.
     match /users/{uid} {
       allow read, write: if signedIn() && request.auth.uid == uid;
@@ -40,9 +44,16 @@ service cloud.firestore {
 
     match /schools/{sid} {
       allow read: if isMember(sid);
-      allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if isAdmin(sid)
-        && request.resource.data.createdBy == resource.data.createdBy;
+      allow create: if signedIn()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.plan == 'trial'
+        && request.resource.data.paidUntil == null
+        && request.resource.data.copyCount == 0;
+      // Subscription fields (plan, trialEndsAt, paidUntil) and identity fields
+      // are only ever changed by hand in the Firestore console.
+      allow update: if
+        (isAdmin(sid) && onlyChanges(['name', 'loanDays', 'groups', 'copyCount', 'nextInternalCode']))
+        || (isMember(sid) && onlyChanges(['copyCount', 'nextInternalCode']));
       allow delete: if false;
 
       match /members/{uid} {

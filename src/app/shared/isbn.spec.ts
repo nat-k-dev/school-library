@@ -1,4 +1,4 @@
-import { isbn10To13, isValidIsbn10, isValidIsbn13, normalizeIsbn, toIsbn13 } from './isbn';
+import { isInternalCode, isbn10To13, isValidIsbn10, isValidIsbn13, makeInternalCode, normalizeIsbn, toIsbn13 } from './isbn';
 
 describe('isbn', () => {
   describe('normalizeIsbn', () => {
@@ -62,6 +62,25 @@ describe('isbn', () => {
       expect(toIsbn13('')).toBeNull();
       expect(toIsbn13('1234')).toBeNull();
       expect(toIsbn13('9789045110265')).toBeNull();
+    });
+  });
+
+  describe('internal codes', () => {
+    it('builds a 13-digit code with a valid EAN-13 checksum', () => {
+      const code = makeInternalCode(1);
+      expect(code).toMatch(/^200000000001\d$/);
+      expect(isValidIsbn13(code)).toBeTrue();
+      expect(toIsbn13(code)).toBe(code);
+      expect(isInternalCode(code)).toBeTrue();
+    });
+
+    it('does not mistake a real ISBN for an internal code', () => {
+      expect(isInternalCode('9789045110264')).toBeFalse();
+    });
+
+    it('rejects sequences out of range', () => {
+      expect(() => makeInternalCode(0)).toThrow();
+      expect(() => makeInternalCode(1.5)).toThrow();
     });
   });
 });

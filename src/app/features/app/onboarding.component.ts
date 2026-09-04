@@ -1,16 +1,20 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../core/auth.service';
 import { JoinError, SchoolService } from '../../core/school.service';
+import { LibraryService } from '../../services/library.service';
+import { StudentsService } from '../../services/students.service';
+import { DEMO_STUDENTS, DEMO_TITLES } from '../../shared/demo-data';
 import { T } from '../../shared/nl';
 
 /** Shown inside the shell when the signed-in user belongs to no school yet. */
 @Component({
   selector: 'app-onboarding',
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatCheckboxModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="min-h-screen bg-[#f4f7fb] flex flex-col items-center px-5 py-10 gap-6">
@@ -31,6 +35,7 @@ import { T } from '../../shared/nl';
             <input matInput [formControl]="schoolName" autocomplete="organization">
             <mat-error>{{ t.fields.required }}</mat-error>
           </mat-form-field>
+          <mat-checkbox [formControl]="withDemo" class="text-sm">{{ t.onboarding.demoData }}</mat-checkbox>
           <button mat-flat-button type="submit" class="primary-button" [disabled]="busy()">{{ t.onboarding.createButton }}</button>
         </form>
 
@@ -56,11 +61,14 @@ import { T } from '../../shared/nl';
 export class OnboardingComponent {
   protected readonly auth = inject(AuthService);
   private readonly school = inject(SchoolService);
+  private readonly students = inject(StudentsService);
+  private readonly library = inject(LibraryService);
 
   protected readonly t = T;
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly schoolName = new FormControl('', { nonNullable: true, validators: Validators.required });
+  protected readonly withDemo = new FormControl(false, { nonNullable: true });
   protected readonly joinCode = new FormControl('', { nonNullable: true, validators: Validators.required });
 
   protected async create(): Promise<void> {
@@ -68,7 +76,10 @@ export class OnboardingComponent {
       this.schoolName.markAsTouched();
       return;
     }
-    await this.run(() => this.school.createSchool(this.schoolName.value));
+    await this.run(async () => {
+      await this.school.createSchool(this.schoolName.value);
+      if (this.withDemo.value) await this.seedDemo();
+    });
   }
 
   protected async join(): Promise<void> {
@@ -77,6 +88,13 @@ export class OnboardingComponent {
       return;
     }
     await this.run(() => this.school.joinSchool(this.joinCode.value));
+  }
+
+  /** The school document arrives through a listener; wait for it before writing under it. */
+  private async seedDemo(): Promise<void> {
+    for (let i = 0; i < 50 && !this.school.schoolId(); i++) await new Promise((r) => setTimeout(r, 100));
+    await this.students.importMany(DEMO_STUDENTS);
+    for (const { isbn, draft, copies } of DEMO_TITLES) await this.library.addTitleWithCopies(isbn, draft, copies);
   }
 
   private async run(action: () => Promise<unknown>): Promise<void> {

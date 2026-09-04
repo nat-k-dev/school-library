@@ -11,11 +11,14 @@ import { firstValueFrom, of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { collectionChanges } from '../../core/firestore.util';
 import { SchoolService } from '../../core/school.service';
+import { LibraryService } from '../../services/library.service';
 import { SnackBarService } from '../../services/snack-bar.service';
 import { StudentsService } from '../../services/students.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
-import { Member } from '../../shared/models';
-import { T } from '../../shared/nl';
+import { downloadCsv, toCsv } from '../../shared/export';
+import { Member, studentDisplayName, today } from '../../shared/models';
+import { T, formatDate } from '../../shared/nl';
+import { FREE_TIER_COPIES } from '../../shared/plan';
 
 @Component({
   selector: 'app-settings',
@@ -27,6 +30,7 @@ export class SettingsComponent {
   private readonly zone = inject(NgZone);
   private readonly auth = inject(AuthService);
   private readonly students = inject(StudentsService);
+  private readonly library = inject(LibraryService);
   private readonly snackBar = inject(SnackBarService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
@@ -35,7 +39,32 @@ export class SettingsComponent {
 
   protected readonly t = T;
   protected readonly busy = signal(false);
-  protected readonly plan = computed(() => T.settings.plan[this.school.school()?.plan ?? 'free']);
+  protected readonly planName = computed(() => T.settings.planName[this.school.plan()?.status ?? 'free']);
+
+  /** One sentence about where the subscription stands. */
+  protected readonly planText = computed(() => {
+    const plan = this.school.plan();
+    const count = this.school.school()?.copyCount ?? 0;
+    if (!plan) return '';
+    switch (plan.status) {
+      case 'trial':
+        return T.plan.status.trial(plan.daysLeft ?? 0, formatDate(plan.until ?? ''));
+      case 'paid':
+        return T.plan.status.paid(formatDate(plan.until ?? ''));
+      case 'free':
+        return T.plan.status.free(count, FREE_TIER_COPIES);
+      case 'locked':
+        return T.plan.status.locked(count, FREE_TIER_COPIES);
+    }
+  });
+
+  protected readonly requestHref = computed(() => {
+    const school = this.school.school();
+    if (!school) return '';
+    const subject = encodeURIComponent(T.plan.requestSubject(school.name));
+    const body = encodeURIComponent(T.plan.requestBody(school.name, school.copyCount));
+    return `mailto:info@biebouders.nl?subject=${subject}&body=${body}`;
+  });
 
   protected readonly members = toSignal(
     toObservable(this.school.schoolId).pipe(
@@ -101,10 +130,56 @@ export class SettingsComponent {
     });
   }
 
+  protected async exportBooks(): Promise<void> {
+    await this.run(async () => {
+      const titles = new Map((this.library.titles() ?? []).map((t) => [t.isbn, t]));
+      const copies = (this.library.copies() ?? []).filter((c) => c.status !== 'removed');
+      const csv = toCsv(copies, [
+        { header: 'ISBN', value: (c) => c.isbn },
+        { header: 'Titel', value: (c) => titles.get(c.isbn)?.title },
+        { header: 'Auteur', value: (c) => titles.get(c.isbn)?.author },
+        { header: 'AVI', value: (c) => titles.get(c.isbn)?.avi },
+        { header: 'Locatie', value: (c) => c.location },
+        { header: 'Status', value: (c) => T.books.copyStatus[c.status] },
+        { header: 'Toegevoegd', value: (c) => c.createdAt.slice(0, 10) },
+      ]);
+      downloadCsv(`biebouders-boeken-${today()}.csv`, csv);
+    });
+  }
+
+  protected async exportStudents(): Promise<void> {
+    await this.run(async () => {
+      const csv = toCsv(this.students.activeStudents(), [
+        { header: 'Voornaam', value: (s) => s.firstName },
+        { header: 'Achternaam', value: (s) => s.lastName },
+        { header: 'Groep', value: (s) => s.group },
+      ]);
+      downloadCsv(`biebouders-leerlingen-${today()}.csv`, csv);
+    });
+  }
+
+  protected async exportLoans(): Promise<void> {
+    await this.run(async () => {
+      const loans = await this.library.allLoans();
+      const csv = toCsv(loans, [
+        { header: 'Uitgeleend op', value: (l) => l.borrowedAt },
+        { header: 'Terug op', value: (l) => l.dueAt },
+        { header: 'Ingenomen op', value: (l) => l.returnedAt },
+        { header: 'Titel', value: (l) => l.title },
+        { header: 'ISBN', value: (l) => l.isbn },
+        { header: 'Leerling', value: (l) => l.studentName },
+        { header: 'Groep', value: (l) => l.group },
+      ]);
+      downloadCsv(`biebouders-uitleningen-${today()}.csv`, csv);
+    });
+  }
+
   protected async logout(): Promise<void> {
     await this.auth.logout();
     await this.router.navigateByUrl('/');
   }
+
+  protected readonly name = studentDisplayName;
 
   private async run(action: () => Promise<unknown>): Promise<void> {
     this.busy.set(true);

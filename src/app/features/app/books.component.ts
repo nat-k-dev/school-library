@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { LibraryService } from '../../services/library.service';
 import { SnackBarService } from '../../services/snack-bar.service';
@@ -21,7 +22,7 @@ interface Row {
 
 @Component({
   selector: 'app-books',
-  imports: [FormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressSpinnerModule, RouterLink],
+  imports: [FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressSpinnerModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './books.component.html',
 })
@@ -31,6 +32,12 @@ export class BooksComponent {
 
   protected readonly t = T;
   protected readonly search = signal('');
+  protected readonly location = signal('');
+  protected readonly locations = computed(() =>
+    [...new Set((this.library.copies() ?? []).filter((c) => c.status !== 'removed').map((c) => c.location).filter((l) => l !== ''))].sort((a, b) =>
+      a.localeCompare(b, 'nl', { numeric: true }),
+    ),
+  );
   protected readonly busy = signal<string | null>(null);
   protected readonly loaded = computed(() => this.library.titles() !== undefined && this.library.copies() !== undefined);
 
@@ -50,10 +57,12 @@ export class BooksComponent {
 
   protected readonly visible = computed(() => {
     const needle = this.search().trim().toLowerCase();
-    if (!needle) return this.rows();
-    return this.rows().filter(
-      (r) => r.title.title.toLowerCase().includes(needle) || r.title.author.toLowerCase().includes(needle) || r.title.isbn.includes(needle),
-    );
+    const location = this.location();
+    return this.rows()
+      .filter((r) => !location || r.copies.some((c) => c.location === location))
+      .filter(
+        (r) => !needle || r.title.title.toLowerCase().includes(needle) || r.title.author.toLowerCase().includes(needle) || r.title.isbn.includes(needle),
+      );
   });
 
   protected async addCopy(row: Row): Promise<void> {
@@ -63,7 +72,7 @@ export class BooksComponent {
   protected async markCopy(row: Row, status: 'lost' | 'removed'): Promise<void> {
     const copy = row.copies.find((c) => c.status === 'available') ?? row.copies.find((c) => c.status === 'lost');
     if (!copy) return;
-    await this.run(row.title.isbn, () => this.library.setCopyStatus(copy.id, status));
+    await this.run(row.title.isbn, () => this.library.setCopyStatus(copy, status));
   }
 
   private async run(isbn: string, action: () => Promise<void>): Promise<void> {

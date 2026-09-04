@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -6,6 +6,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SchoolService } from '../../core/school.service';
 import { T } from '../../shared/nl';
 import { OnboardingComponent } from './onboarding.component';
+
+const TRIAL_WARNING_DAYS = 14;
 
 /** Signed-in frame: school header, tab navigation, and onboarding when the user has no school yet. */
 @Component({
@@ -33,6 +35,9 @@ import { OnboardingComponent } from './onboarding.component';
               </a>
             }
           </nav>
+          @if (banner(); as banner) {
+            <a routerLink="/app/instellingen" class="block plan-banner no-underline" [class]="'plan-banner ' + banner.kind">{{ banner.text }}</a>
+          }
         </header>
         <main class="grow background-stripes">
           <div class="max-w-3xl mx-auto p-4 md:p-8">
@@ -53,4 +58,15 @@ export class ShellComponent {
     { path: '/app/boeken', icon: 'menu_book', label: T.nav.books },
     { path: '/app/leerlingen', icon: 'groups', label: T.nav.students },
   ];
+
+  /** Trial about to end, or library locked: one line under the tabs. */
+  protected readonly banner = computed(() => {
+    const plan = this.school.plan();
+    if (!plan) return null;
+    if (plan.locked) return { kind: 'locked', text: T.plan.bannerLocked };
+    if (plan.status === 'trial' && plan.daysLeft !== null && plan.daysLeft <= TRIAL_WARNING_DAYS) {
+      return { kind: 'trial', text: T.plan.bannerTrial(plan.daysLeft) };
+    }
+    return null;
+  });
 }

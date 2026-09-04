@@ -45,3 +45,16 @@ body {
 .student-button {
   @apply text-left px-4 py-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50 active:bg-blue-100 text-base cursor-pointer;
 }
+
+.plan-banner {
+  @apply text-sm px-4 py-2 text-center;
+}
+.plan-banner.trial { @apply bg-amber-50 text-amber-900 border-b border-amber-200; }
+.plan-banner.locked { @apply bg-red-50 text-red-900 border-b border-red-200; }
+
+@media print {
+  header, nav, .no-print { display: none !important; }
+  body, .background-stripes { background: white !important; }
+  .card { box-shadow: none !important; border-color: #ccc !important; break-inside: avoid; }
+  .max-w-3xl { max-width: none !important; padding: 0 !important; }
+}

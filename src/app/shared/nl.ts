@@ -14,6 +14,8 @@ export const T = {
     books: 'Boeken',
     students: 'Leerlingen',
     settings: 'Instellingen',
+    labels: 'Etiketten',
+    print: 'Afdrukken',
     logout: 'Uitloggen',
     login: 'Inloggen',
     register: 'Gratis starten',
@@ -95,6 +97,7 @@ export const T = {
     createTitle: 'Nieuwe school',
     schoolName: 'Naam van de school',
     createButton: 'Schoolbieb aanmaken',
+    demoData: 'Vul de bieb met voorbeeldgegevens (12 leerlingen, 8 boeken) om rond te kijken',
     joinTitle: 'Aansluiten bij een school',
     joinText: 'Vraag de beheerder van de schoolbieb om de toegangscode. Die staat bij Instellingen.',
     joinCode: 'Toegangscode',
@@ -111,6 +114,7 @@ export const T = {
     avi: 'AVI-niveau',
     copies: 'Aantal exemplaren',
     location: 'Locatie (optioneel)',
+    allLocations: 'Alle locaties',
     firstName: 'Voornaam',
     lastName: 'Achternaam (optioneel)',
     group: 'Groep',
@@ -185,6 +189,7 @@ export const T = {
       removed: 'Afgevoerd',
     } as Record<string, string>,
     saved: 'Opgeslagen.',
+    labels: 'Etiketten',
   },
 
   addBook: {
@@ -199,6 +204,8 @@ export const T = {
     done: (title: string, n: number) => (n === 1 ? `"${title}" is toegevoegd.` : `"${title}" is toegevoegd (${n} exemplaren).`),
     failed: 'Toevoegen is niet gelukt. Probeer het opnieuw.',
     another: 'Volgend boek',
+    noBarcode: 'Geen barcode? Maak een eigen code',
+    internalCode: 'Eigen code van de school. Vul titel en auteur zelf in en druk daarna een etiket af bij Boeken → Etiketten.',
   },
 
   students: {
@@ -241,8 +248,46 @@ export const T = {
     newYearButton: 'Groepen doorschuiven',
     newYearConfirm: 'Alle leerlingen één groep doorschuiven? Dit kun je niet ongedaan maken.',
     newYearDone: (promoted: number, left: number) => `${promoted} leerlingen doorgeschoven, ${left} van school.`,
-    plan: { free: 'Gratis (klassenbieb)', trial: 'Proefperiode', paid: 'Schoolbieb' } as Record<string, string>,
+    planName: { free: 'Gratis (klassenbieb)', trial: 'Proefperiode', paid: 'Schoolbieb', locked: 'Alleen-lezen' } as Record<string, string>,
+    readOnlyHint: 'Alleen de beheerder kan deze instellingen wijzigen.',
     logout: 'Uitloggen',
+  },
+
+  plan: {
+    title: 'Abonnement',
+    status: {
+      trial: (days: number, until: string) => `Proefperiode: nog ${days} dagen, tot ${until}.`,
+      paid: (until: string) => `Schoolbieb, betaald tot ${until}.`,
+      free: (count: number, max: number) => `Gratis klassenbieb: ${count} van ${max} boeken.`,
+      locked: (count: number, max: number) =>
+        `De proefperiode is voorbij en de bieb heeft ${count} boeken, meer dan de ${max} van de gratis klassenbieb. Uitlenen en toevoegen staan uit tot het abonnement is geregeld.`,
+    } as const,
+    bannerTrial: (days: number) => (days === 1 ? 'De proefperiode eindigt morgen.' : `De proefperiode eindigt over ${days} dagen.`),
+    bannerLocked: 'De bieb staat op alleen-lezen. Regel het abonnement bij Instellingen.',
+    price: '€ 149 per jaar, geen btw, betaling op factuur.',
+    request: 'Schoolbieb aanvragen',
+    requestSubject: (school: string) => `Schoolbieb aanvragen voor ${school}`,
+    requestBody: (school: string, count: number) =>
+      `Hallo,\n\nGraag een factuur voor het Schoolbieb-abonnement (€ 149 per jaar) voor ${school} (${count} boeken).\n\nFactuuradres:\n\nMet vriendelijke groet,`,
+    lockedTitle: 'Alleen-lezen',
+    lockedText: 'Deze actie is niet beschikbaar zolang het abonnement niet is geregeld. Bekijken en innemen kan wel.',
+  },
+
+  export: {
+    title: 'Exporteren',
+    text: 'Download alle gegevens van je school als CSV (opent in Excel). Handig voor een back-up of als je overstapt.',
+    books: 'Boeken',
+    students: 'Leerlingen',
+    loans: 'Uitleningen',
+  },
+
+  labels: {
+    title: 'Etiketten',
+    text: 'Voor boeken met een eigen code van de school. Print op etikettenvellen met 3 × 8 etiketten (bijvoorbeeld Avery L7160, 63,5 × 38,1 mm) of op gewoon papier en knip ze uit.',
+    empty: 'Er zijn nog geen boeken met een eigen code. Maak er een bij Boek toevoegen → Geen barcode?',
+    selectAll: 'Alles selecteren',
+    selectNone: 'Niets selecteren',
+    selected: (n: number) => (n === 1 ? '1 etiket' : `${n} etiketten`),
   },
 
   privacy: {

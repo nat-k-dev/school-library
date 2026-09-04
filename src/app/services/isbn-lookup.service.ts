@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../injected-environment';
+import { isInternalCode } from '../shared/isbn';
 import { TitleDraft } from '../shared/models';
 
 /**
@@ -15,6 +16,7 @@ import { TitleDraft } from '../shared/models';
 @Injectable({ providedIn: 'root' })
 export class IsbnLookupService {
   async lookup(isbn: string): Promise<TitleDraft | null> {
+    if (isInternalCode(isbn)) return null;
     return (await this.openLibrary(isbn)) ?? (await this.googleBooks(isbn));
   }
 
