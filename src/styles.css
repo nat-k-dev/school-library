@@ -37,10 +37,20 @@ body {
   @apply absolute inset-0 flex items-center justify-center bg-white/60 rounded-2xl z-10;
 }
 .tab-link {
-  @apply flex items-center gap-1 px-3 py-3 text-sm font-medium text-slate-600 border-b-2 border-transparent whitespace-nowrap no-underline;
+  @apply flex items-center gap-2 px-4 md:px-6 py-4 text-lg lg:text-xl font-medium text-slate-600 border-b-2 border-transparent whitespace-nowrap no-underline hover:text-blue-900 hover:bg-blue-50/60;
 }
 .tab-link.active {
   @apply text-blue-900 border-blue-900;
+}
+
+/* Phone/tablet navigation: five wrapped tiles, three per row on a phone and one row from 768px up. */
+.nav-tile {
+  @apply basis-[calc(33.333%-0.5rem)] md:basis-[calc(20%-0.5rem)] flex flex-col items-center justify-center gap-1
+    py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700
+    text-sm font-medium leading-tight text-center no-underline;
+}
+.nav-tile.active {
+  @apply bg-blue-900 border-blue-900 text-white shadow-sm;
 }
 .student-button {
   @apply text-left px-4 py-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50 active:bg-blue-100 text-base cursor-pointer;

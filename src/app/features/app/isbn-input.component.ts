@@ -19,7 +19,7 @@ import { ScannerComponent } from '../../shared/scanner/scanner.component';
   imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, ScannerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-3 items-stretch">
+    <div class="flex flex-col gap-3 items-stretch pt-3">
       <app-scanner (scanned)="emit($event)" />
       <!-- [formGroup] is what turns (ngSubmit) on; without it the browser does a native submit and reloads. -->
       <form class="flex gap-2 items-start" [formGroup]="form" (ngSubmit)="submit()">

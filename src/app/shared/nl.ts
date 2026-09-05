@@ -8,8 +8,8 @@ export const T = {
   tagline: 'De schoolbieb op je telefoon',
 
   nav: {
-    borrow: 'Uitlenen',
-    return: 'Innemen',
+    borrow: 'Lenen',
+    return: 'Inleveren',
     loans: 'Overzicht',
     books: 'Boeken',
     students: 'Leerlingen',
@@ -25,7 +25,7 @@ export const T = {
   landing: {
     heroTitle: 'Een schoolbieb zonder scanner, printer of gedoe',
     heroText:
-      'Scan het ISBN op de achterkant met je telefoon. Uitlenen en innemen in twee tikken. Voor leesouders, leerkrachten en leescoördinatoren van basisscholen.',
+      'Scan het ISBN op de achterkant met je telefoon. Lenen en inleveren in twee tikken. Voor leesouders, leerkrachten en leescoördinatoren van basisscholen.',
     cta: 'Gratis starten',
     ctaSecondary: 'Bekijk de demo',
     features: [
@@ -51,7 +51,7 @@ export const T = {
       'Maak een account en vul de naam van je school in.',
       'Plak de leerlingenlijst uit ParnasSys, ESIS of Excel.',
       'Scan je boeken. Tien seconden per boek, ook met meerdere ouders tegelijk.',
-      'Uitlenen: scan het boek, tik op de naam. Klaar.',
+      'Lenen: scan het boek, tik op de naam. Klaar.',
     ],
     pricingTitle: 'Eén prijs, alles inbegrepen',
     priceFree: 'Klassenbieb',
@@ -135,7 +135,7 @@ export const T = {
   },
 
   borrow: {
-    title: 'Uitlenen',
+    title: 'Lenen',
     step1: 'Scan of typ het ISBN',
     step2: 'Kies de leerling',
     lookup: 'Zoek boek',
@@ -146,18 +146,18 @@ export const T = {
     allGroups: 'Alle groepen',
     noStudents: 'Geen leerlingen gevonden. Voeg leerlingen toe bij Leerlingen.',
     done: (title: string, child: string, due: string) => `"${title}" is uitgeleend aan ${child}, terug op ${due}.`,
-    failed: 'Uitlenen is niet gelukt. Probeer het opnieuw.',
+    failed: 'Lenen is niet gelukt. Probeer het opnieuw.',
     other: 'Ander boek',
   },
 
   return: {
-    title: 'Innemen',
+    title: 'Inleveren',
     step1: 'Scan of typ het ISBN van het boek dat terugkomt',
     notOnLoan: 'Dit boek is niet uitgeleend.',
     chooseLoan: 'Er zijn meerdere exemplaren uitgeleend. Welk exemplaar komt terug?',
-    done: (title: string, child: string) => `"${title}" is ingenomen van ${child}.`,
-    failed: 'Innemen is niet gelukt. Probeer het opnieuw.',
-    button: 'Innemen',
+    done: (title: string, child: string) => `"${title}" is ingeleverd door ${child}.`,
+    failed: 'Inleveren is niet gelukt. Probeer het opnieuw.',
+    button: 'Inleveren',
   },
 
   loans: {
@@ -166,7 +166,7 @@ export const T = {
     overdue: 'Te laat',
     dueOn: 'Terug op',
     since: 'Sinds',
-    returnButton: 'Innemen',
+    returnButton: 'Inleveren',
     allGroups: 'Alle groepen',
     count: (n: number) => (n === 1 ? '1 boek uitgeleend' : `${n} boeken uitgeleend`),
     overdueCount: (n: number) => (n === 1 ? '1 te laat' : `${n} te laat`),
@@ -260,7 +260,7 @@ export const T = {
       paid: (until: string) => `Schoolbieb, betaald tot ${until}.`,
       free: (count: number, max: number) => `Gratis klassenbieb: ${count} van ${max} boeken.`,
       locked: (count: number, max: number) =>
-        `De proefperiode is voorbij en de bieb heeft ${count} boeken, meer dan de ${max} van de gratis klassenbieb. Uitlenen en toevoegen staan uit tot het abonnement is geregeld.`,
+        `De proefperiode is voorbij en de bieb heeft ${count} boeken, meer dan de ${max} van de gratis klassenbieb. Lenen en toevoegen staan uit tot het abonnement is geregeld.`,
     } as const,
     bannerTrial: (days: number) => (days === 1 ? 'De proefperiode eindigt morgen.' : `De proefperiode eindigt over ${days} dagen.`),
     bannerLocked: 'De bieb staat op alleen-lezen. Regel het abonnement bij Instellingen.',
@@ -270,7 +270,7 @@ export const T = {
     requestBody: (school: string, count: number) =>
       `Hallo,\n\nGraag een factuur voor het Schoolbieb-abonnement (€ 149 per jaar) voor ${school} (${count} boeken).\n\nFactuuradres:\n\nMet vriendelijke groet,`,
     lockedTitle: 'Alleen-lezen',
-    lockedText: 'Deze actie is niet beschikbaar zolang het abonnement niet is geregeld. Bekijken en innemen kan wel.',
+    lockedText: 'Deze actie is niet beschikbaar zolang het abonnement niet is geregeld. Bekijken en inleveren kan wel.',
   },
 
   export: {

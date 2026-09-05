@@ -21,19 +21,33 @@ const TRIAL_WARNING_DAYS = 14;
       <app-onboarding />
     } @else {
       <div class="min-h-screen flex flex-col">
-        <header class="bg-white shadow-md sticky top-0 z-20">
+        <header class="bg-white shadow-md z-20 md:sticky md:top-0">
           <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
             <img src="/assets/images/logo4.png" alt="" class="h-9 w-9 rounded-xl">
             <span class="font-semibold truncate">{{ school.school()?.name }}</span>
             <span class="grow"></span>
             <a mat-icon-button routerLink="/app/instellingen" [attr.aria-label]="t.nav.settings"><mat-icon>settings</mat-icon></a>
           </div>
-          <nav class="max-w-5xl mx-auto px-2 flex overflow-x-auto">
-            @for (item of items; track item.path) {
-              <a [routerLink]="item.path" routerLinkActive="active" class="tab-link">
-                <mat-icon class="text-[20px]! w-5! h-5!">{{ item.icon }}</mat-icon>{{ item.label }}
-              </a>
-            }
+          <!-- Phone and tablet: big tap targets, wrapped so every page is visible without sideways scrolling. -->
+          <nav class="lg:hidden max-w-3xl mx-auto px-3 pb-3">
+            <div class="flex flex-wrap justify-center gap-2">
+              @for (item of items; track item.path) {
+                <a [routerLink]="item.path" routerLinkActive="active" class="nav-tile">
+                  <mat-icon class="text-[26px]! w-[26px]! h-[26px]!">{{ item.icon }}</mat-icon>
+                  <span>{{ item.label }}</span>
+                </a>
+              }
+            </div>
+          </nav>
+          <!-- Desktop: the classic underlined tab row. -->
+          <nav class="hidden lg:block max-w-5xl mx-auto px-2">
+            <div class="flex justify-center gap-1">
+              @for (item of items; track item.path) {
+                <a [routerLink]="item.path" routerLinkActive="active" class="tab-link">
+                  <mat-icon class="text-[28px]! w-7! h-7!">{{ item.icon }}</mat-icon>{{ item.label }}
+                </a>
+              }
+            </div>
           </nav>
           @if (banner(); as banner) {
             <a routerLink="/app/instellingen" class="block plan-banner no-underline" [class]="'plan-banner ' + banner.kind">{{ banner.text }}</a>
